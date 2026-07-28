@@ -274,7 +274,8 @@
           </div>
           <div class="field">
             <label>Serviço que você presta</label>
-            <input type="text" id="fServico" placeholder="Ex: Coleta de entulho e mudanças pequenas">
+            <div class="chip-select" id="fServicos"></div>
+            <input type="text" id="fServicoOutro" placeholder="Outro serviço (opcional)" style="margin-top:8px;display:none;">
           </div>
           <div class="field">
             <label>Bairros onde você atua</label>
@@ -681,6 +682,9 @@ let areasSelecionadas = [];
 let cadastroFotos = {};
 const FOTO_FIELDS = ['fFotoCarroceiro','fComprovanteResidencia','fComprovantePrefeitura','fFotoAnimal','fComprovanteVacinacao'];
 
+const SERVICOS = ['Coleta de entulho', 'Mudança pequena', 'Poda de árvore', 'Areia', 'Brita', 'Retroescavadeira', 'Outro'];
+let servicosSelecionados = [];
+
 function renderAreasCadastro(){
   const wrap = document.getElementById('fAreas');
   wrap.innerHTML = bairros.map(b => `<div class="chip" data-b="${b}">${b}</div>`).join('');
@@ -693,6 +697,23 @@ function renderAreasCadastro(){
       else { areasSelecionadas.splice(idx,1); chip.classList.remove('active'); }
     });
   });
+}
+
+function renderServicosCadastro(){
+  const wrap = document.getElementById('fServicos');
+  wrap.innerHTML = SERVICOS.map(s => `<div class="chip" data-s="${s}">${s}</div>`).join('');
+  const outroInput = document.getElementById('fServicoOutro');
+  wrap.querySelectorAll('.chip').forEach(chip => {
+    if(servicosSelecionados.includes(chip.dataset.s)) chip.classList.add('active');
+    chip.addEventListener('click', () => {
+      const s = chip.dataset.s;
+      const idx = servicosSelecionados.indexOf(s);
+      if(idx === -1){ servicosSelecionados.push(s); chip.classList.add('active'); }
+      else { servicosSelecionados.splice(idx,1); chip.classList.remove('active'); }
+      outroInput.style.display = servicosSelecionados.includes('Outro') ? '' : 'none';
+    });
+  });
+  outroInput.style.display = servicosSelecionados.includes('Outro') ? '' : 'none';
 }
 
 function compressImage(file, maxDim, quality){
@@ -769,7 +790,9 @@ function openCadastro(){
   document.getElementById('cadastroSucesso').style.display = 'none';
   cadastroFotos = {};
   areasSelecionadas = [];
+  servicosSelecionados = [];
   renderAreasCadastro();
+  renderServicosCadastro();
   document.querySelectorAll('.file-preview').forEach(el => el.innerHTML = '');
   document.getElementById('errGeral').textContent = '';
   document.getElementById('errCpf').textContent = '';
@@ -784,7 +807,9 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
   errCpf.textContent = '';
 
   const nome = document.getElementById('fNome').value.trim();
-  const servico = document.getElementById('fServico').value.trim();
+  const servicoOutro = document.getElementById('fServicoOutro').value.trim();
+  const listaServicos = servicosSelecionados.map(s => s === 'Outro' ? servicoOutro : s).filter(Boolean);
+  const servico = listaServicos.join(', ');
   const tempo = document.getElementById('fTempo').value.trim();
   const telefoneRaw = document.getElementById('fTelefone').value.trim();
   const nomeCompleto = document.getElementById('fNomeCompleto').value.trim();
