@@ -216,6 +216,48 @@
   #cadastroSucesso .icon-ok{width:56px;height:56px;color:var(--leaf);margin:0 auto 16px;display:block;}
   #cadastroSucesso h3{font-size:18px;font-weight:800;margin:0 0 8px;}
   #cadastroSucesso p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0;}
+
+  /* ---------- Tela 0: início ---------- */
+  #screenHome{flex:1;overflow-y:auto;display:none;flex-direction:column;}
+  .home-hero{
+    background:var(--mustard);color:#fff;text-align:center;flex-shrink:0;
+    padding:38px 24px 42px;border-radius:0 0 28px 28px;
+    box-shadow:0 4px 16px rgba(120,45,10,0.25);
+  }
+  .home-hero img{width:100px;height:100px;display:block;margin:0 auto 14px;}
+  .home-hero h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-0.3px;}
+  .menu-list{padding:22px 18px 30px;display:flex;flex-direction:column;gap:12px;}
+  .menu-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);
+    padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;
+    box-shadow:var(--shadow-sm);transition:transform .12s;
+  }
+  .menu-card:active{transform:scale(0.98);box-shadow:none;}
+  .menu-icon{
+    width:46px;height:46px;border-radius:50%;background:var(--mustard-soft);color:var(--mustard);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .menu-icon .icon{font-size:22px;}
+  .menu-label{flex:1;font-weight:700;font-size:15px;}
+  .menu-arrow{color:var(--mustard);font-size:16px;flex-shrink:0;}
+
+  /* ---------- Barra inferior (visual, sem função por enquanto) ---------- */
+  .bottom-nav{
+    display:flex;justify-content:space-around;align-items:center;flex-shrink:0;
+    background:var(--card);border-top:1px solid var(--line);
+    padding:9px 0 calc(9px + env(safe-area-inset-bottom));
+  }
+  .nav-btn{
+    display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);
+    background:none;border:none;font-family:'Manrope',sans-serif;font-size:10px;font-weight:700;
+    padding:4px 16px;
+  }
+  .nav-btn .icon{font-size:20px;}
+  .nav-btn.active{color:var(--mustard);}
+
+  /* ---------- Tela: Quem somos? ---------- */
+  #screenSobre{flex:1;overflow-y:auto;display:none;padding:22px 20px 40px;}
+  #screenSobre p{font-size:14px;line-height:1.65;color:#43454F;margin:0 0 14px;}
 </style>
 </head>
 <body>
@@ -235,10 +277,45 @@
     </button>
   </header>
 
+  <!-- TELA 0: início -->
+  <div id="screenHome">
+    <div class="home-hero">
+      <img src="logo.png" alt="Carroça Já">
+      <h1>Carroça Já</h1>
+    </div>
+    <div class="menu-list">
+      <div class="menu-card" onclick="goToBairros(null)">
+        <div class="menu-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"/></svg></div>
+        <div class="menu-label">Localizar um carroceiro</div>
+        <svg class="icon menu-arrow" viewBox="0 0 24 24"><path d="M8.5 4.5 16 12l-7.5 7.5-1.4-1.4L13.1 12 6.1 5.9z"/></svg>
+      </div>
+      <div class="menu-card" onclick="goToBairros('Retroescavadeira')">
+        <div class="menu-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 18h1v-5a2 2 0 0 1 2-2h3V8h2v3h2a4 4 0 0 1 4 4v3h1v2H3zm4-10h6V6.5c0-.8-.7-1.5-1.5-1.5h-3C7.7 5 7 5.7 7 6.5z"/></svg></div>
+        <div class="menu-label">Retroescavadeira</div>
+        <svg class="icon menu-arrow" viewBox="0 0 24 24"><path d="M8.5 4.5 16 12l-7.5 7.5-1.4-1.4L13.1 12 6.1 5.9z"/></svg>
+      </div>
+      <div class="menu-card" onclick="goToBairros('Areia')">
+        <div class="menu-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M2 19 9.5 6l3 5.2L15 9l7 10z"/></svg></div>
+        <div class="menu-label">Areia</div>
+        <svg class="icon menu-arrow" viewBox="0 0 24 24"><path d="M8.5 4.5 16 12l-7.5 7.5-1.4-1.4L13.1 12 6.1 5.9z"/></svg>
+      </div>
+      <div class="menu-card" onclick="showScreen('sobre')">
+        <div class="menu-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 12c4.4 0 8 2.2 8 5v3H4v-3c0-2.8 3.6-5 8-5"/></svg></div>
+        <div class="menu-label">Quem somos?</div>
+        <svg class="icon menu-arrow" viewBox="0 0 24 24"><path d="M8.5 4.5 16 12l-7.5 7.5-1.4-1.4L13.1 12 6.1 5.9z"/></svg>
+      </div>
+      <div class="menu-card" onclick="openCadastro()">
+        <div class="menu-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1m0 3v1h6V5H9m3 5v3h3v2h-3v3h-2v-3H7v-2h3v-3z"/></svg></div>
+        <div class="menu-label">Quero me cadastrar</div>
+        <svg class="icon menu-arrow" viewBox="0 0 24 24"><path d="M8.5 4.5 16 12l-7.5 7.5-1.4-1.4L13.1 12 6.1 5.9z"/></svg>
+      </div>
+    </div>
+  </div>
+
   <!-- TELA 1: escolher bairro -->
   <div id="screenBairro">
-    <div class="screen-title">Onde você precisa do carroceiro?</div>
-    <p class="screen-sub">Escolha o bairro. Mostramos só quem atua na região — carroceiro informa a própria área de atuação.</p>
+    <div class="screen-title" id="bairroScreenTitle">Onde você precisa do carroceiro?</div>
+    <p class="screen-sub" id="bairroScreenSub">Escolha o bairro. Mostramos só quem atua na região — carroceiro informa a própria área de atuação.</p>
     <div class="search-wrap">
       <svg class="icon" viewBox="0 0 24 24"><path d="M10 2a8 8 0 1 0 4.9 14.32l5.39 5.38 1.42-1.41-5.39-5.39A8 8 0 0 0 10 2m0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12"/></svg>
       <input class="search-box" id="searchBairro" placeholder="Buscar bairro...">
@@ -360,6 +437,20 @@
       <div id="cadastroSucesso" style="display:none;"></div>
     </div>
   </div>
+
+  <!-- TELA: Quem somos? -->
+  <div id="screenSobre">
+    <div class="screen-title">Quem somos?</div>
+    <p>O <b>Carroça Já</b> é um projeto independente criado para facilitar a vida de quem precisa de um carroceiro em Vitória da Conquista — seja pra uma mudança pequena, retirada de entulho, transporte de areia e materiais de construção, ou poda de árvore.</p>
+    <p>A ideia é simples: conectar direto quem precisa do serviço com quem trabalha na área, por bairro, sem intermediário. O contato é sempre direto por WhatsApp ou telefone, e cada carroceiro recebe avaliações de quem já usou o serviço, pra ajudar outras pessoas a escolher com mais confiança.</p>
+    <p>Todo carroceiro passa por uma conferência de cadastro antes de aparecer no app — nome, endereço, documentos e foto do animal — pra garantir que quem está do outro lado é real.</p>
+    <p>O Carroça Já é um projeto separado do <b>Carroça Legal</b> (programa institucional de regularização de carroceiros), mas compartilha o mesmo objetivo de fundo: valorizar o trabalho do carroceiro e tornar esse serviço mais visível e confiável pra cidade.</p>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="showScreen('home')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3 3 10v11h6v-7h6v7h6V10z"/></svg><span>Início</span></button>
+    <button class="nav-btn"><svg class="icon" viewBox="0 0 24 24"><path d="M12.5 2a9.5 9.5 0 1 0 6.7 16.2l-1.4-1.4a7.5 7.5 0 1 1 0-10.6l-2.3 2.3H21V3.5l-2.3 2.3A9.47 9.47 0 0 0 12.5 2M12 7v6l4.5 2.7.8-1.3-3.8-2.3V7z"/></svg><span>Histórico</span></button>
+  </div>
 </div>
 
 <script>
@@ -408,6 +499,9 @@ let carroceiros = [];
 let currentBairro = null;
 let currentCarroceiro = null;
 let pendingStars = 0;
+let currentServiceFilter = null;
+let currentScreen = 'home';
+let cadastroVeioDaHome = false;
 
 // ---------- Persistência local (cache offline) ----------
 function salvarLocal(){ localStorage.setItem('cj_carroceiros', JSON.stringify(carroceiros)); }
@@ -526,20 +620,50 @@ function avatarHtml(c, cls){
 
 // ---------- Navegação ----------
 function showScreen(name){
+  document.getElementById('screenHome').style.display = name==='home' ? 'flex' : 'none';
   document.getElementById('screenBairro').style.display = name==='bairro' ? 'block' : 'none';
   document.getElementById('screenLista').style.display = name==='lista' ? 'flex' : 'none';
   document.getElementById('screenPerfil').style.display = name==='perfil' ? 'block' : 'none';
   document.getElementById('screenCadastro').style.display = name==='cadastro' ? 'block' : 'none';
-  document.getElementById('backBtn').style.display = name==='bairro' ? 'none' : 'flex';
+  document.getElementById('screenSobre').style.display = name==='sobre' ? 'block' : 'none';
+  document.querySelector('header').style.display = name==='home' ? 'none' : 'flex';
+  document.getElementById('backBtn').style.display = name==='home' ? 'none' : 'flex';
+  currentScreen = name;
 }
 document.getElementById('backBtn').addEventListener('click', () => {
-  if(document.getElementById('screenPerfil').style.display === 'block'){
+  if(currentScreen === 'perfil'){
     renderLista(currentBairro);
     showScreen('lista');
-  } else {
+  } else if(currentScreen === 'lista'){
     showScreen('bairro');
+  } else if(currentScreen === 'cadastro'){
+    showScreen(cadastroVeioDaHome ? 'home' : 'bairro');
+  } else {
+    currentServiceFilter = null;
+    showScreen('home');
   }
 });
+
+// ---------- Tela 0: início ----------
+function matchesServiceFilter(c){
+  return !currentServiceFilter || (c.servico || '').toLowerCase().includes(currentServiceFilter.toLowerCase());
+}
+
+function goToBairros(filtro){
+  currentServiceFilter = filtro;
+  const title = document.getElementById('bairroScreenTitle');
+  const sub = document.getElementById('bairroScreenSub');
+  if(filtro){
+    title.textContent = 'Onde você precisa de ' + filtro.toLowerCase() + '?';
+    sub.textContent = 'Escolha o bairro. Mostramos só quem oferece ' + filtro.toLowerCase() + ' na região.';
+  } else {
+    title.textContent = 'Onde você precisa do carroceiro?';
+    sub.textContent = 'Escolha o bairro. Mostramos só quem atua na região — carroceiro informa a própria área de atuação.';
+  }
+  document.getElementById('searchBairro').value = '';
+  renderBairros();
+  showScreen('bairro');
+}
 
 // ---------- Tela 1 ----------
 function renderBairros(filter=''){
@@ -548,7 +672,7 @@ function renderBairros(filter=''){
   list.innerHTML = bairros
     .filter(b => b.toLowerCase().includes(f))
     .map(b => {
-      const count = carroceiros.filter(c => c.areas.includes(b)).length;
+      const count = carroceiros.filter(c => c.areas.includes(b) && matchesServiceFilter(c)).length;
       return `<div class="bairro-card" onclick="selectBairro('${b}')">
         <div>
           <div class="bairro-name">${b}</div>
@@ -569,7 +693,7 @@ function selectBairro(b){
 // ---------- Tela 2 ----------
 function renderLista(b){
   document.getElementById('listaTitulo').textContent = b;
-  const items = carroceiros.filter(c => c.areas.includes(b));
+  const items = carroceiros.filter(c => c.areas.includes(b) && matchesServiceFilter(c));
   document.getElementById('listaSub').textContent = items.length + ' carroceiro' + (items.length===1?'':'s') + ' atuando nesse bairro';
   const wrap = document.getElementById('carroceiroList');
   if(!items.length){
@@ -785,6 +909,7 @@ function cpfValido(cpf){
 }
 
 function openCadastro(){
+  cadastroVeioDaHome = currentScreen === 'home';
   document.getElementById('formCadastro').reset();
   document.getElementById('formCadastro').style.display = '';
   document.getElementById('cadastroSucesso').style.display = 'none';
@@ -888,7 +1013,7 @@ async function iniciar(){
   document.getElementById('bairroList').innerHTML = '<div class="loading-msg">Carregando carroceiros…</div>';
   await carregarCarroceiros();
   renderBairros();
-  showScreen('bairro');
+  showScreen('home');
   flushFila();
 }
 iniciar();
