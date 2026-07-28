@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Carroça Já</title>
+<meta name="theme-color" content="#16233A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#16233A;
+    --night-2:#1E3252;
+    --mustard:#E3A008;
+    --brick:#B33A3A;
+    --paper:#FAF7F0;
+    --leaf:#4C7A5D;
+    --ink:#1C1C1A;
+    --line:#EDE6D0;
+    --muted:#8a8560;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;font-family:'Work Sans',sans-serif;background:var(--paper);color:var(--ink);}
+  #app{display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;}
+
+  header{
+    background:var(--night);
+    color:var(--paper);
+    padding:14px 18px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:3px solid var(--mustard);
+    z-index:20;
+    flex-shrink:0;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{
+    width:34px;height:34px;background:var(--mustard);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:900;color:var(--night);font-size:18px;
+    transform:rotate(-4deg);
+  }
+  .brand h1{font-family:'Fraunces',serif;font-weight:700;font-size:19px;margin:0;}
+  .brand span{display:block;font-size:10.5px;color:var(--mustard);font-weight:600;letter-spacing:0.6px;text-transform:uppercase;margin-top:1px;}
+  .back-btn{
+    background:var(--night-2);border:1px solid rgba(250,247,240,0.2);color:var(--paper);
+    font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+  }
+  .sync-dot{width:8px;height:8px;border-radius:50%;background:#7CD98A;flex-shrink:0;}
+  .sync-dot.off{background:#C9C2A8;}
+  .sync-dot.err{background:var(--brick);}
+  .sync-row{display:flex;align-items:center;gap:6px;font-size:10.5px;color:rgba(250,247,240,0.65);margin-top:2px;}
+
+  /* ---------- Tela 1: escolher bairro ---------- */
+  #screenBairro{flex:1;overflow-y:auto;padding:20px 18px 30px;}
+  .screen-title{font-family:'Fraunces',serif;font-weight:700;font-size:22px;margin:4px 0 4px;}
+  .screen-sub{font-size:13.5px;color:var(--muted);margin:0 0 18px;line-height:1.5;}
+  .search-box{
+    background:#fff;border:1.5px solid var(--line);border-radius:12px;
+    padding:12px 14px;font-size:14.5px;width:100%;margin-bottom:16px;
+    font-family:'Work Sans',sans-serif;
+  }
+  .bairro-list{display:flex;flex-direction:column;gap:8px;}
+  .bairro-card{
+    background:#fff;border:1.5px solid var(--line);border-radius:12px;
+    padding:14px 16px;display:flex;justify-content:space-between;align-items:center;
+    cursor:pointer;transition:border-color .15s;
+  }
+  .bairro-card:active{border-color:var(--mustard);}
+  .bairro-name{font-weight:700;font-size:15px;}
+  .bairro-count{font-size:12px;color:var(--leaf);font-weight:600;margin-top:2px;}
+  .bairro-arrow{color:var(--mustard);font-size:18px;}
+  .loading-msg{padding:40px 10px;text-align:center;color:var(--muted);font-size:13.5px;}
+
+  /* ---------- Tela 2: lista de carroceiros do bairro ---------- */
+  #screenLista{flex:1;overflow-y:auto;display:none;flex-direction:column;}
+  .lista-header{padding:16px 18px 10px;}
+  .lista-header h2{font-family:'Fraunces',serif;font-size:19px;margin:0 0 2px;}
+  .lista-header p{font-size:12.5px;color:var(--muted);margin:0;}
+  .carroceiro-list{padding:6px 18px 24px;display:flex;flex-direction:column;gap:10px;}
+  .cc-card{
+    background:#fff;border:1.5px solid var(--line);border-radius:14px;
+    padding:14px;display:flex;gap:12px;align-items:center;cursor:pointer;
+  }
+  .avatar{
+    width:48px;height:48px;border-radius:11px;background:var(--night);color:var(--mustard);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;
+    font-weight:700;font-size:18px;flex-shrink:0;border:2px solid var(--mustard);
+  }
+  .cc-info{flex:1;min-width:0;}
+  .cc-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:5px;}
+  .cc-service{font-size:12px;color:var(--leaf);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;}
+  .cc-stars{font-size:12.5px;color:var(--mustard);margin-top:4px;display:flex;align-items:center;gap:5px;}
+  .cc-stars b{color:var(--ink);font-weight:700;}
+  .cc-stars small{color:var(--muted);}
+  .status-tag{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px;flex-shrink:0;}
+  .status-tag.on{background:#E4F3E7;color:#2E6B3E;}
+  .status-tag.off{background:#F1ECDC;color:#8a8560;}
+  .empty-lista{padding:40px 24px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.6;}
+
+  /* ---------- Tela 3: perfil ---------- */
+  #screenPerfil{flex:1;overflow-y:auto;display:none;}
+  .perfil-hero{padding:22px 20px 18px;background:#fff;border-bottom:1px solid var(--line);}
+  .perfil-top{display:flex;gap:14px;align-items:flex-start;}
+  .avatar-lg{
+    width:60px;height:60px;border-radius:14px;background:var(--night);color:var(--mustard);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;
+    font-weight:700;font-size:22px;flex-shrink:0;border:2px solid var(--mustard);
+  }
+  .perfil-name{font-family:'Fraunces',serif;font-weight:700;font-size:20px;margin:0;}
+  .perfil-service{font-size:12.5px;color:var(--leaf);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;margin-top:3px;}
+  .perfil-stars{margin-top:8px;font-size:15px;color:var(--mustard);display:flex;align-items:center;gap:6px;}
+  .perfil-stars b{color:var(--ink);font-size:14px;font-weight:700;}
+  .perfil-stars small{color:var(--muted);font-weight:500;}
+  .status-row{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+  .status-row .dot{width:7px;height:7px;border-radius:50%;background:#7CD98A;}
+  .status-row.off .dot{background:#C9C2A8;}
+
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px 0;}
+  .info-box{background:#F1ECDC;border-radius:10px;padding:9px 11px;}
+  .info-box .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;}
+  .info-box .value{font-size:14px;font-weight:600;color:var(--ink);margin-top:2px;}
+
+  .actions{display:flex;gap:10px;padding:16px 20px 4px;}
+  .btn{
+    flex:1;padding:13px 10px;border-radius:11px;border:none;font-family:'Work Sans',sans-serif;
+    font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    gap:6px;text-decoration:none;
+  }
+  .btn-wpp{background:#3FA24C;color:#fff;}
+  .btn-call{background:var(--night);color:var(--paper);}
+
+  .section{padding:18px 20px;}
+  .section-title{font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:700;margin:0 0 10px;}
+
+  .review{font-size:13.5px;color:#4d4c46;line-height:1.5;padding:10px 0;border-top:1px solid var(--line);}
+  .review:first-child{border-top:none;}
+  .review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+  .review-top b{color:var(--ink);font-size:13.5px;}
+  .review-stars{color:var(--mustard);font-size:12px;}
+  .review-pending{font-size:10.5px;color:var(--brick);font-weight:600;margin-left:6px;}
+
+  .rate-box{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:16px;margin-top:4px;}
+  .rate-box h4{margin:0 0 10px;font-size:13.5px;font-weight:700;}
+  .star-picker{display:flex;gap:6px;font-size:26px;color:#D8D0B4;cursor:pointer;margin-bottom:12px;}
+  .star-picker span.active{color:var(--mustard);}
+  .comment-input{
+    width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;
+    font-family:'Work Sans',sans-serif;font-size:13.5px;resize:none;min-height:60px;margin-bottom:10px;
+  }
+  .btn-send{background:var(--night);color:var(--paper);width:100%;padding:12px;border-radius:10px;
+    border:none;font-weight:700;font-size:14px;cursor:pointer;}
+  .btn-send:disabled{opacity:0.4;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand" id="brandBlock">
+      <div class="brand-mark">C</div>
+      <div>
+        <h1>Carroça Já</h1>
+        <span>Vitória da Conquista</span>
+        <div class="sync-row"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">sincronizando…</span></div>
+      </div>
+    </div>
+    <button class="back-btn" id="backBtn" style="display:none;">← Voltar</button>
+  </header>
+
+  <!-- TELA 1: escolher bairro -->
+  <div id="screenBairro">
+    <div class="screen-title">Onde você precisa do carroceiro?</div>
+    <p class="screen-sub">Escolha o bairro. Mostramos só quem atua na região — carroceiro informa a própria área de atuação.</p>
+    <input class="search-box" id="searchBairro" placeholder="Buscar bairro...">
+    <div class="bairro-list" id="bairroList"></div>
+  </div>
+
+  <!-- TELA 2: lista de carroceiros -->
+  <div id="screenLista">
+    <div class="lista-header">
+      <h2 id="listaTitulo">Bairro</h2>
+      <p id="listaSub">carroceiros disponíveis</p>
+    </div>
+    <div class="carroceiro-list" id="carroceiroList"></div>
+  </div>
+
+  <!-- TELA 3: perfil -->
+  <div id="screenPerfil"></div>
+</div>
+
+<script>
+// ---------- Configuração ----------
+const CONFIG = {
+  // Cole aqui a URL do Google Apps Script publicado (termina em /exec).
+  // Enquanto ficar vazio, o app roda só com os dados de exemplo abaixo (SEED) + cache local.
+  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbwzmeDEuOFSoAPE5HPETDIpucO3ArKgIds1MsN7QwhkW5mZS12QZPl840G9S-aodm4u/exec',
+  // Mesmo valor do TOKEN definido em apps-script/Code.gs, se você configurou um.
+  TOKEN: ''
+};
+
+const bairros = ["Nova Cidade", "Candeias", "Recreio", "Jurema", "Guarani", "Centro", "Ibirapuera", "Patagônia"];
+
+// Dados de exemplo — usados só até a planilha estar configurada, ou como fallback offline.
+const SEED_CARROCEIROS = [
+  { id:1, nome:"Zé Raimundo", servico:"Coleta de entulho e mudanças pequenas",
+    areas:["Nova Cidade","Candeias"], telefone:"5577988013134",
+    online:true, tempo:"8 anos de atuação",
+    reviews:[
+      {autor:"Marta S.", nota:5, texto:"Rápido e cuidadoso com os móveis. Recomendo."},
+      {autor:"Antônio F.", nota:4, texto:"Preço justo, chegou no horário combinado."}
+    ]},
+  { id:2, nome:"Val Carroceiro", servico:"Transporte de materiais de construção",
+    areas:["Recreio","Jurema"], telefone:"5577992345602",
+    online:true, tempo:"5 anos de atuação",
+    reviews:[
+      {autor:"Ivone P.", nota:5, texto:"Trouxe a areia rapidinho, muito educado."}
+    ]},
+  { id:3, nome:"Cabo Verde", servico:"Retirada de galhos e poda",
+    areas:["Guarani","Ibirapuera"], telefone:"5577993456703",
+    online:false, tempo:"2 anos de atuação",
+    reviews:[
+      {autor:"Josenildo A.", nota:4, texto:"Bom trabalho, só demorou um pouco pra responder."}
+    ]},
+  { id:4, nome:"Seu Damião", servico:"Mudanças e fretes gerais",
+    areas:["Centro","Nova Cidade"], telefone:"5577994567804",
+    online:true, tempo:"12 anos de atuação",
+    reviews:[
+      {autor:"Rita M.", nota:5, texto:"O carroceiro mais confiável da região, uso sempre."},
+      {autor:"Paulo H.", nota:5, texto:"Cuidou de tudo com muito respeito."}
+    ]}
+];
+
+let carroceiros = [];
+let currentBairro = null;
+let currentCarroceiro = null;
+let pendingStars = 0;
+
+// ---------- Persistência local (cache offline) ----------
+function salvarLocal(){ localStorage.setItem('cj_carroceiros', JSON.stringify(carroceiros)); }
+function carregarLocal(){ const raw = localStorage.getItem('cj_carroceiros'); return raw ? JSON.parse(raw) : null; }
+function salvarFila(fila){ localStorage.setItem('cj_fila_avaliacoes', JSON.stringify(fila)); }
+function carregarFila(){ const raw = localStorage.getItem('cj_fila_avaliacoes'); return raw ? JSON.parse(raw) : []; }
+
+// ---------- JSONP (evita problemas de CORS com Apps Script) ----------
+function jsonp(url, params){
+  return new Promise((resolve, reject) => {
+    const callbackName = 'cj_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    const script = document.createElement('script');
+    const qs = new URLSearchParams(Object.assign({}, params, { callback: callbackName }));
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('tempo esgotado'));
+    }, 10000);
+    function cleanup(){
+      clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+    }
+    window[callbackName] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('falha na conexão')); };
+    script.src = url + '?' + qs.toString();
+    document.body.appendChild(script);
+  });
+}
+
+// ---------- Status de sincronização ----------
+function setSyncStatus(status){
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncLabel');
+  dot.className = 'sync-dot' + (status === 'off' ? ' off' : status === 'err' ? ' err' : '');
+  label.textContent = {
+    ok: 'sincronizado',
+    off: 'modo local (sem planilha configurada)',
+    syncing: 'sincronizando…',
+    err: 'sem conexão — usando dados salvos',
+    sending: 'enviando avaliação…'
+  }[status] || status;
+}
+
+// ---------- Carregamento de dados ----------
+async function carregarCarroceiros(){
+  if(!CONFIG.SHEETS_URL){
+    carroceiros = carregarLocal() || SEED_CARROCEIROS;
+    setSyncStatus('off');
+    return;
+  }
+  setSyncStatus('syncing');
+  try{
+    const data = await jsonp(CONFIG.SHEETS_URL, { action:'list', token: CONFIG.TOKEN });
+    if(!data.success) throw new Error(data.error || 'erro desconhecido');
+    carroceiros = data.carroceiros;
+    salvarLocal();
+    setSyncStatus('ok');
+  } catch(err){
+    console.warn('Sync falhou, usando dados locais:', err);
+    carroceiros = carregarLocal() || SEED_CARROCEIROS;
+    setSyncStatus('err');
+  }
+}
+
+async function enviarAvaliacao(carroceiroId, autor, nota, texto){
+  if(!CONFIG.SHEETS_URL) return { success:false, offline:true };
+  try{
+    setSyncStatus('sending');
+    const data = await jsonp(CONFIG.SHEETS_URL, { action:'avaliar', token: CONFIG.TOKEN, carroceiroId, autor, nota, texto });
+    setSyncStatus(data.success ? 'ok' : 'err');
+    return data;
+  } catch(err){
+    const fila = carregarFila();
+    fila.push({ carroceiroId, autor, nota, texto });
+    salvarFila(fila);
+    setSyncStatus('err');
+    return { success:false, offline:true };
+  }
+}
+
+async function flushFila(){
+  if(!CONFIG.SHEETS_URL) return;
+  const fila = carregarFila();
+  if(!fila.length) return;
+  const restantes = [];
+  for(const item of fila){
+    try{
+      const data = await jsonp(CONFIG.SHEETS_URL, Object.assign({ action:'avaliar', token: CONFIG.TOKEN }, item));
+      if(!data.success) restantes.push(item);
+    } catch(err){
+      restantes.push(item);
+    }
+  }
+  salvarFila(restantes);
+  if(restantes.length < fila.length) await carregarCarroceiros();
+}
+window.addEventListener('online', flushFila);
+
+// ---------- Utilitários ----------
+function avg(c){ if(!c.reviews.length) return 0; return c.reviews.reduce((s,r)=>s+r.nota,0) / c.reviews.length; }
+function starsStr(rating){ const full = Math.round(rating); let s=''; for(let i=0;i<5;i++) s += i<full ? '★' : '☆'; return s; }
+function initials(nome){ return nome.split(' ').map(w=>w[0]).slice(0,2).join(''); }
+
+// ---------- Navegação ----------
+function showScreen(name){
+  document.getElementById('screenBairro').style.display = name==='bairro' ? 'block' : 'none';
+  document.getElementById('screenLista').style.display = name==='lista' ? 'flex' : 'none';
+  document.getElementById('screenPerfil').style.display = name==='perfil' ? 'block' : 'none';
+  document.getElementById('backBtn').style.display = name==='bairro' ? 'none' : 'flex';
+}
+document.getElementById('backBtn').addEventListener('click', () => {
+  if(document.getElementById('screenPerfil').style.display === 'block'){
+    renderLista(currentBairro);
+    showScreen('lista');
+  } else {
+    showScreen('bairro');
+  }
+});
+
+// ---------- Tela 1 ----------
+function renderBairros(filter=''){
+  const list = document.getElementById('bairroList');
+  const f = filter.toLowerCase();
+  list.innerHTML = bairros
+    .filter(b => b.toLowerCase().includes(f))
+    .map(b => {
+      const count = carroceiros.filter(c => c.areas.includes(b)).length;
+      return `<div class="bairro-card" onclick="selectBairro('${b}')">
+        <div>
+          <div class="bairro-name">${b}</div>
+          <div class="bairro-count">${count} carroceiro${count===1?'':'s'} cadastrado${count===1?'':'s'}</div>
+        </div>
+        <div class="bairro-arrow">→</div>
+      </div>`;
+    }).join('');
+}
+document.getElementById('searchBairro').addEventListener('input', e => renderBairros(e.target.value));
+
+function selectBairro(b){
+  currentBairro = b;
+  renderLista(b);
+  showScreen('lista');
+}
+
+// ---------- Tela 2 ----------
+function renderLista(b){
+  document.getElementById('listaTitulo').textContent = b;
+  const items = carroceiros.filter(c => c.areas.includes(b));
+  document.getElementById('listaSub').textContent = items.length + ' carroceiro' + (items.length===1?'':'s') + ' atuando nesse bairro';
+  const wrap = document.getElementById('carroceiroList');
+  if(!items.length){
+    wrap.innerHTML = '<div class="empty-lista">Ainda não tem carroceiro cadastrado nesse bairro.</div>';
+    return;
+  }
+  wrap.innerHTML = items.map(c => {
+    const r = avg(c);
+    return `<div class="cc-card" onclick="openPerfil(${c.id})">
+      <div class="avatar">${initials(c.nome)}</div>
+      <div class="cc-info">
+        <div class="cc-name">${c.nome}</div>
+        <div class="cc-service">${c.servico}</div>
+        <div class="cc-stars"><span>${starsStr(r)}</span> <b>${r.toFixed(1)}</b> <small>(${c.reviews.length})</small></div>
+      </div>
+      <div class="status-tag ${c.online?'on':'off'}">${c.online?'Disponível':'Offline'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- Tela 3 ----------
+function openPerfil(id){
+  currentCarroceiro = carroceiros.find(c => String(c.id) === String(id));
+  pendingStars = 0;
+  renderPerfil();
+  showScreen('perfil');
+}
+
+function renderPerfil(){
+  const c = currentCarroceiro;
+  const r = avg(c);
+  const waLink = `https://wa.me/${c.telefone}?text=${encodeURIComponent('Olá ' + c.nome + '! Encontrei seus serviços por meio do app Carroça Já e preciso de um serviço. Depois que o serviço for concluído, vou voltar no app pra avaliar seu atendimento.')}`;
+  document.getElementById('screenPerfil').innerHTML = `
+    <div class="perfil-hero">
+      <div class="perfil-top">
+        <div class="avatar-lg">${initials(c.nome)}</div>
+        <div>
+          <p class="perfil-name">${c.nome}</p>
+          <div class="perfil-service">${c.servico}</div>
+          <div class="perfil-stars"><span>${starsStr(r)}</span> <b>${r.toFixed(1)}</b> <small>(${c.reviews.length} avaliações)</small></div>
+        </div>
+      </div>
+      <div class="status-row ${c.online?'':'off'}"><span class="dot"></span> ${c.online?'Disponível agora':'Offline no momento'}</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-box"><div class="label">Área de atuação</div><div class="value">${c.areas.join(', ')}</div></div>
+      <div class="info-box"><div class="label">Experiência</div><div class="value">${c.tempo}</div></div>
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-wpp" href="${waLink}" target="_blank">💬 WhatsApp</a>
+      <a class="btn btn-call" href="tel:${c.telefone}">📞 Ligar</a>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Avaliações</div>
+      ${c.reviews.map(rv => `
+        <div class="review">
+          <div class="review-top"><b>${rv.autor}</b><span class="review-stars">${starsStr(rv.nota)}</span>${rv.pendente ? '<span class="review-pending">enviando…</span>' : ''}</div>
+          ${rv.texto}
+        </div>`).join('')}
+    </div>
+
+    <div class="section" style="padding-top:0;">
+      <div class="rate-box">
+        <h4>Deixe sua avaliação</h4>
+        <div class="star-picker" id="starPicker">
+          ${[1,2,3,4,5].map(n => `<span data-n="${n}" onclick="pickStar(${n})">★</span>`).join('')}
+        </div>
+        <textarea class="comment-input" id="commentInput" placeholder="Como foi o serviço?"></textarea>
+        <button class="btn-send" id="sendBtn" onclick="submitReview()" disabled>Enviar avaliação</button>
+      </div>
+    </div>
+  `;
+}
+
+function pickStar(n){
+  pendingStars = n;
+  document.querySelectorAll('#starPicker span').forEach(s => {
+    s.classList.toggle('active', parseInt(s.dataset.n) <= n);
+  });
+  document.getElementById('sendBtn').disabled = false;
+}
+
+async function submitReview(){
+  const texto = document.getElementById('commentInput').value.trim();
+  if(pendingStars === 0) return;
+  const nota = pendingStars;
+  const novaReview = { autor: 'Você', nota, texto: texto || '(sem comentário)', pendente: true };
+  currentCarroceiro.reviews.unshift(novaReview);
+  pendingStars = 0;
+  renderPerfil();
+  salvarLocal();
+
+  const resultado = await enviarAvaliacao(currentCarroceiro.id, 'Você', nota, texto);
+  novaReview.pendente = !(resultado && resultado.success);
+  renderPerfil();
+  salvarLocal();
+}
+
+// ---------- Inicialização ----------
+async function iniciar(){
+  document.getElementById('bairroList').innerHTML = '<div class="loading-msg">Carregando carroceiros…</div>';
+  await carregarCarroceiros();
+  renderBairros();
+  showScreen('bairro');
+  flushFila();
+}
+iniciar();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW falhou:', err));
+  });
+}
+</script>
+</body>
+</html>
