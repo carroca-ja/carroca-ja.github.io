@@ -179,6 +179,43 @@
     border:none;font-weight:700;font-size:14px;cursor:pointer;transition:transform .12s,opacity .12s;}
   .btn-send:active:not(:disabled){transform:scale(0.98);}
   .btn-send:disabled{opacity:0.35;}
+
+  /* ---------- Link de cadastro (fim da tela 1) ---------- */
+  .link-cadastro{display:block;text-align:center;margin-top:20px;font-size:13px;font-weight:700;color:var(--mustard);text-decoration:none;padding:10px;}
+
+  /* ---------- Tela 4: cadastro de carroceiro ---------- */
+  #screenCadastro{flex:1;overflow-y:auto;display:none;}
+  .cadastro-wrap{padding:22px 18px 40px;}
+  .form-section{margin-bottom:26px;}
+  .form-section-title{font-size:11.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:700;margin:0 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .field input[type=text],.field input[type=tel],.field textarea{
+    width:100%;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:11px 13px;
+    font-family:'Manrope',sans-serif;font-size:14px;color:var(--ink);background:var(--card);
+  }
+  .field textarea{min-height:64px;resize:vertical;}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--mustard);}
+  .field-error{font-size:11.5px;color:var(--brick);font-weight:700;margin-top:5px;min-height:14px;}
+
+  .chip-select{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;transition:all .12s;user-select:none;}
+  .chip.active{background:var(--mustard);border-color:var(--mustard);color:#fff;}
+
+  .file-field{margin-bottom:16px;}
+  .file-field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .file-field input[type=file]{width:100%;font-size:12px;color:var(--muted);font-family:'Manrope',sans-serif;}
+  .file-preview{margin-top:9px;}
+  .file-preview img{max-width:110px;max-height:110px;border-radius:var(--radius-sm);border:1.5px solid var(--line);display:block;object-fit:cover;}
+  .file-preview .status{font-size:11.5px;color:var(--leaf);font-weight:700;margin-top:5px;}
+
+  .term-row{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.55;color:#43454F;margin-bottom:14px;cursor:pointer;}
+  .term-row input[type=checkbox]{margin-top:2px;width:18px;height:18px;accent-color:var(--mustard);flex-shrink:0;cursor:pointer;}
+
+  #cadastroSucesso{text-align:center;padding:50px 20px;}
+  #cadastroSucesso .icon-ok{width:56px;height:56px;color:var(--leaf);margin:0 auto 16px;display:block;}
+  #cadastroSucesso h3{font-size:18px;font-weight:800;margin:0 0 8px;}
+  #cadastroSucesso p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0;}
 </style>
 </head>
 <body>
@@ -207,6 +244,7 @@
       <input class="search-box" id="searchBairro" placeholder="Buscar bairro...">
     </div>
     <div class="bairro-list" id="bairroList"></div>
+    <a class="link-cadastro" href="javascript:void(0)" onclick="openCadastro()">É carroceiro e quer aparecer aqui? Cadastre-se →</a>
   </div>
 
   <!-- TELA 2: lista de carroceiros -->
@@ -220,6 +258,107 @@
 
   <!-- TELA 3: perfil -->
   <div id="screenPerfil"></div>
+
+  <!-- TELA 4: cadastro de carroceiro -->
+  <div id="screenCadastro">
+    <div class="cadastro-wrap">
+      <div class="screen-title">Cadastrar como carroceiro</div>
+      <p class="screen-sub">Preencha seus dados e envie os documentos abaixo. Seu cadastro só aparece pra quem busca no app depois que a gente conferir tudo — normalmente leva alguns dias.</p>
+
+      <form id="formCadastro" novalidate>
+        <div class="form-section">
+          <div class="form-section-title">Como você aparece no app</div>
+          <div class="field">
+            <label>Nome ou apelido</label>
+            <input type="text" id="fNome" placeholder="Ex: Zé Raimundo">
+          </div>
+          <div class="field">
+            <label>Serviço que você presta</label>
+            <input type="text" id="fServico" placeholder="Ex: Coleta de entulho e mudanças pequenas">
+          </div>
+          <div class="field">
+            <label>Bairros onde você atua</label>
+            <div class="chip-select" id="fAreas"></div>
+          </div>
+          <div class="field">
+            <label>Há quanto tempo você trabalha nisso? (opcional)</label>
+            <input type="text" id="fTempo" placeholder="Ex: 8 anos de atuação">
+          </div>
+          <div class="field">
+            <label>WhatsApp / telefone</label>
+            <input type="tel" id="fTelefone" placeholder="(77) 9XXXX-XXXX">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Seus dados — não aparecem no app, só pra conferência</div>
+          <div class="field">
+            <label>Nome completo</label>
+            <input type="text" id="fNomeCompleto" placeholder="Como está no seu documento">
+          </div>
+          <div class="field">
+            <label>CPF</label>
+            <input type="text" id="fCpf" placeholder="000.000.000-00" inputmode="numeric">
+            <div class="field-error" id="errCpf"></div>
+          </div>
+          <div class="field">
+            <label>Endereço completo</label>
+            <textarea id="fEndereco" placeholder="Rua, número, bairro"></textarea>
+          </div>
+          <div class="field">
+            <label>Número de cadastro na prefeitura</label>
+            <input type="text" id="fNumeroPrefeitura">
+          </div>
+          <div class="field">
+            <label>Número de registro no Carroça Legal (opcional, se já tiver)</label>
+            <input type="text" id="fNumeroCarrocaLegal">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Fotos e documentos</div>
+          <div class="file-field">
+            <label>Sua foto (opcional, mas ajuda a passar confiança)</label>
+            <input type="file" accept="image/*" id="fFotoCarroceiro">
+            <div class="file-preview" id="pvFotoCarroceiro"></div>
+          </div>
+          <div class="file-field">
+            <label>Foto do comprovante de residência</label>
+            <input type="file" accept="image/*" id="fComprovanteResidencia">
+            <div class="file-preview" id="pvComprovanteResidencia"></div>
+          </div>
+          <div class="file-field">
+            <label>Foto do comprovante de cadastro na prefeitura</label>
+            <input type="file" accept="image/*" id="fComprovantePrefeitura">
+            <div class="file-preview" id="pvComprovantePrefeitura"></div>
+          </div>
+          <div class="file-field">
+            <label>Foto do animal (opcional)</label>
+            <input type="file" accept="image/*" id="fFotoAnimal">
+            <div class="file-preview" id="pvFotoAnimal"></div>
+          </div>
+          <div class="file-field">
+            <label>Comprovante de vacinação do animal (opcional)</label>
+            <input type="file" accept="image/*" id="fComprovanteVacinacao">
+            <div class="file-preview" id="pvComprovanteVacinacao"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Termos</div>
+          <label class="term-row"><input type="checkbox" id="tAnimais"><span>Me comprometo a cuidar bem do meu animal de tração — alimentação, água, descanso e atenção veterinária quando precisar.</span></label>
+          <label class="term-row"><input type="checkbox" id="tDescarte"><span>Me comprometo a descartar entulho e resíduos só em local apropriado, nunca em terrenos baldios, córregos ou áreas de preservação.</span></label>
+          <label class="term-row"><input type="checkbox" id="tVeracidade"><span>Declaro que os dados e documentos enviados são verdadeiros e sei que meu cadastro pode ser removido se isso não for verdade.</span></label>
+          <label class="term-row"><input type="checkbox" id="tLgpd"><span>Autorizo o uso dos meus dados e documentos só para conferência do cadastro, sem divulgação pública do CPF, endereço ou comprovantes.</span></label>
+        </div>
+
+        <div class="field-error" id="errGeral" style="text-align:center;margin-bottom:10px;"></div>
+        <button type="submit" class="btn-send" id="btnCadastrar">Enviar cadastro</button>
+      </form>
+
+      <div id="cadastroSucesso" style="display:none;"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -379,12 +518,17 @@ function starsStr(rating){
   return s + '</span>';
 }
 function initials(nome){ return nome.split(' ').map(w=>w[0]).slice(0,2).join(''); }
+function avatarHtml(c, cls){
+  if(c.foto) return `<img class="${cls}" src="${c.foto}" alt="${c.nome}" style="object-fit:cover;">`;
+  return `<div class="${cls}">${initials(c.nome)}</div>`;
+}
 
 // ---------- Navegação ----------
 function showScreen(name){
   document.getElementById('screenBairro').style.display = name==='bairro' ? 'block' : 'none';
   document.getElementById('screenLista').style.display = name==='lista' ? 'flex' : 'none';
   document.getElementById('screenPerfil').style.display = name==='perfil' ? 'block' : 'none';
+  document.getElementById('screenCadastro').style.display = name==='cadastro' ? 'block' : 'none';
   document.getElementById('backBtn').style.display = name==='bairro' ? 'none' : 'flex';
 }
 document.getElementById('backBtn').addEventListener('click', () => {
@@ -434,7 +578,7 @@ function renderLista(b){
   wrap.innerHTML = items.map(c => {
     const r = avg(c);
     return `<div class="cc-card" onclick="openPerfil(${c.id})">
-      <div class="avatar">${initials(c.nome)}</div>
+      ${avatarHtml(c, 'avatar')}
       <div class="cc-info">
         <div class="cc-name">${c.nome}</div>
         <div class="cc-service">${c.servico}</div>
@@ -460,7 +604,7 @@ function renderPerfil(){
   document.getElementById('screenPerfil').innerHTML = `
     <div class="perfil-hero">
       <div class="perfil-top">
-        <div class="avatar-lg">${initials(c.nome)}</div>
+        ${avatarHtml(c, 'avatar-lg')}
         <div>
           <p class="perfil-name">${c.nome}</p>
           <div class="perfil-service">${c.servico}</div>
@@ -532,6 +676,188 @@ async function submitReview(){
   salvarLocal();
 }
 
+// ---------- Tela 4: cadastro de carroceiro ----------
+let areasSelecionadas = [];
+let cadastroFotos = {};
+const FOTO_FIELDS = ['fFotoCarroceiro','fComprovanteResidencia','fComprovantePrefeitura','fFotoAnimal','fComprovanteVacinacao'];
+
+function renderAreasCadastro(){
+  const wrap = document.getElementById('fAreas');
+  wrap.innerHTML = bairros.map(b => `<div class="chip" data-b="${b}">${b}</div>`).join('');
+  wrap.querySelectorAll('.chip').forEach(chip => {
+    if(areasSelecionadas.includes(chip.dataset.b)) chip.classList.add('active');
+    chip.addEventListener('click', () => {
+      const b = chip.dataset.b;
+      const idx = areasSelecionadas.indexOf(b);
+      if(idx === -1){ areasSelecionadas.push(b); chip.classList.add('active'); }
+      else { areasSelecionadas.splice(idx,1); chip.classList.remove('active'); }
+    });
+  });
+}
+
+function compressImage(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    if(!file){ resolve(''); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('falha ao ler o arquivo'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('falha ao abrir a imagem'));
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > maxDim || height > maxDim){
+          if(width > height){ height = Math.round(height * maxDim / width); width = maxDim; }
+          else { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function wireFileInputs(){
+  FOTO_FIELDS.forEach(id => {
+    const input = document.getElementById(id);
+    if(!input) return;
+    input.addEventListener('change', async () => {
+      const file = input.files[0];
+      const preview = document.getElementById('pv' + id.slice(1));
+      if(!file){ cadastroFotos[id] = ''; preview.innerHTML = ''; return; }
+      preview.innerHTML = '<div class="status">comprimindo…</div>';
+      try{
+        const dataUrl = await compressImage(file, 1280, 0.72);
+        cadastroFotos[id] = dataUrl;
+        preview.innerHTML = `<img src="${dataUrl}" alt=""><div class="status">✓ pronto pra enviar</div>`;
+      } catch(err){
+        cadastroFotos[id] = '';
+        preview.innerHTML = '<div class="field-error">Não consegui ler essa imagem — tenta outra.</div>';
+      }
+    });
+  });
+}
+
+document.getElementById('fCpf').addEventListener('input', e => {
+  let v = e.target.value.replace(/\D/g,'').slice(0,11);
+  v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  e.target.value = v;
+});
+
+function cpfValido(cpf){
+  cpf = String(cpf).replace(/\D/g,'');
+  if(cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let soma = 0;
+  for(let i=0;i<9;i++) soma += parseInt(cpf[i],10) * (10-i);
+  let resto = (soma*10) % 11;
+  if(resto === 10 || resto === 11) resto = 0;
+  if(resto !== parseInt(cpf[9],10)) return false;
+  soma = 0;
+  for(let i=0;i<10;i++) soma += parseInt(cpf[i],10) * (11-i);
+  resto = (soma*10) % 11;
+  if(resto === 10 || resto === 11) resto = 0;
+  if(resto !== parseInt(cpf[10],10)) return false;
+  return true;
+}
+
+function openCadastro(){
+  document.getElementById('formCadastro').reset();
+  document.getElementById('formCadastro').style.display = '';
+  document.getElementById('cadastroSucesso').style.display = 'none';
+  cadastroFotos = {};
+  areasSelecionadas = [];
+  renderAreasCadastro();
+  document.querySelectorAll('.file-preview').forEach(el => el.innerHTML = '');
+  document.getElementById('errGeral').textContent = '';
+  document.getElementById('errCpf').textContent = '';
+  showScreen('cadastro');
+}
+
+document.getElementById('formCadastro').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errGeral = document.getElementById('errGeral');
+  const errCpf = document.getElementById('errCpf');
+  errGeral.textContent = '';
+  errCpf.textContent = '';
+
+  const nome = document.getElementById('fNome').value.trim();
+  const servico = document.getElementById('fServico').value.trim();
+  const tempo = document.getElementById('fTempo').value.trim();
+  const telefoneRaw = document.getElementById('fTelefone').value.trim();
+  const nomeCompleto = document.getElementById('fNomeCompleto').value.trim();
+  const cpf = document.getElementById('fCpf').value.trim();
+  const endereco = document.getElementById('fEndereco').value.trim();
+  const numeroPrefeitura = document.getElementById('fNumeroPrefeitura').value.trim();
+  const numeroCarrocaLegal = document.getElementById('fNumeroCarrocaLegal').value.trim();
+
+  if(!nome || !servico || !areasSelecionadas.length || !telefoneRaw || !nomeCompleto || !cpf || !endereco || !numeroPrefeitura){
+    errGeral.textContent = 'Preencha todos os campos obrigatórios (marcados sem "opcional").';
+    return;
+  }
+  if(!cpfValido(cpf)){
+    errCpf.textContent = 'Esse CPF não parece válido — confere os números.';
+    return;
+  }
+  if(!cadastroFotos.fComprovanteResidencia || !cadastroFotos.fComprovantePrefeitura){
+    errGeral.textContent = 'Envie as fotos do comprovante de residência e do cadastro na prefeitura.';
+    return;
+  }
+  const termosOk = ['tAnimais','tDescarte','tVeracidade','tLgpd'].every(id => document.getElementById(id).checked);
+  if(!termosOk){
+    errGeral.textContent = 'É preciso aceitar todos os termos pra continuar.';
+    return;
+  }
+
+  const btn = document.getElementById('btnCadastrar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  const payload = {
+    action: 'cadastrar',
+    token: CONFIG.TOKEN,
+    nome, servico, tempo,
+    areas: areasSelecionadas,
+    telefone: telefoneRaw.replace(/\D/g,''),
+    nomeCompleto,
+    cpf: cpf.replace(/\D/g,''),
+    endereco,
+    numeroCadastroPrefeitura: numeroPrefeitura,
+    numeroCarrocaLegal,
+    fotoCarroceiro: cadastroFotos.fFotoCarroceiro || '',
+    comprovanteResidencia: cadastroFotos.fComprovanteResidencia || '',
+    comprovantePrefeitura: cadastroFotos.fComprovantePrefeitura || '',
+    fotoAnimal: cadastroFotos.fFotoAnimal || '',
+    comprovanteVacinacao: cadastroFotos.fComprovanteVacinacao || '',
+    termoAnimais: true, termoDescarte: true, termoVeracidade: true, termoLgpd: true
+  };
+
+  try{
+    if(!CONFIG.SHEETS_URL) throw new Error('planilha ainda não configurada');
+    const res = await fetch(CONFIG.SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error || 'erro desconhecido');
+    document.getElementById('formCadastro').style.display = 'none';
+    document.getElementById('cadastroSucesso').style.display = 'block';
+    document.getElementById('cadastroSucesso').innerHTML = `
+      <svg class="icon icon-ok" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M20 6 9 17l-5-5"/></svg>
+      <h3>Cadastro enviado!</h3>
+      <p>Vamos conferir seus documentos e você aparece no app assim que for aprovado. Isso costuma levar alguns dias.</p>
+    `;
+  } catch(err){
+    errGeral.textContent = 'Não consegui enviar agora (' + err.message + '). Confere sua internet e tenta de novo.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enviar cadastro';
+  }
+});
+
 // ---------- Inicialização ----------
 async function iniciar(){
   document.getElementById('bairroList').innerHTML = '<div class="loading-msg">Carregando carroceiros…</div>';
@@ -541,6 +867,7 @@ async function iniciar(){
   flushFila();
 }
 iniciar();
+wireFileInputs();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
