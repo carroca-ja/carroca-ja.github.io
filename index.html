@@ -271,6 +271,20 @@
   .admin-status-tag.pendente{background:#FFF3D6;color:#9A6A00;}
   .admin-status-tag.aprovado{background:var(--leaf-soft);color:var(--leaf);}
   .admin-status-tag.rejeitado{background:#FDE4E1;color:var(--brick);}
+  .admin-status-tag.excluido{background:#EDEAE5;color:var(--muted);}
+  .admin-cliques{font-size:11.5px;color:var(--mustard);font-weight:700;margin-top:4px;}
+  .btn-danger-text{background:none;border:none;color:var(--brick);font-size:12px;font-weight:700;cursor:pointer;padding:10px 4px;font-family:'Manrope',sans-serif;}
+  .admin-config-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px;box-shadow:var(--shadow-sm);margin:0 18px 14px;}
+  .admin-config-card h4{margin:0 0 10px;font-size:13px;font-weight:800;}
+  .admin-config-row{display:flex;gap:8px;margin-bottom:10px;}
+  .admin-config-row input{flex:1;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:9px 11px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--ink);}
+  .admin-config-row input:focus{outline:none;border-color:var(--mustard);}
+  .admin-config-row button{background:var(--mustard);color:#fff;border:none;border-radius:var(--radius-sm);padding:0 14px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:'Manrope',sans-serif;}
+  .admin-config-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+  .admin-config-chips span{background:var(--bg);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);}
+  .admin-config-msg{font-size:11.5px;font-weight:700;margin-top:2px;min-height:14px;}
+  .admin-config-msg.err{color:var(--brick);}
+  .admin-config-msg.ok{color:var(--leaf);}
   .admin-docs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0;}
   .admin-docs a{font-size:11.5px;font-weight:700;color:var(--mustard);text-decoration:none;background:var(--mustard-soft);padding:6px 10px;border-radius:999px;}
   .admin-actions{display:flex;gap:10px;margin-top:14px;}
@@ -505,6 +519,27 @@
       <h2>Painel do administrador</h2>
       <p id="adminPainelSub">carregando…</p>
     </div>
+
+    <div class="admin-config-card">
+      <h4>Adicionar serviço</h4>
+      <div class="admin-config-row">
+        <input type="text" id="fAdminNovoServico" placeholder="Ex: Transporte de móveis">
+        <button onclick="adminAdicionarOpcao('servico')">Adicionar</button>
+      </div>
+      <div class="admin-config-chips" id="adminServicosChips"></div>
+      <div class="admin-config-msg" id="adminServicoMsg"></div>
+    </div>
+
+    <div class="admin-config-card">
+      <h4>Adicionar bairro</h4>
+      <div class="admin-config-row">
+        <input type="text" id="fAdminNovoBairro" placeholder="Ex: Alto Maron">
+        <button onclick="adminAdicionarOpcao('bairro')">Adicionar</button>
+      </div>
+      <div class="admin-config-chips" id="adminBairrosChips"></div>
+      <div class="admin-config-msg" id="adminBairroMsg"></div>
+    </div>
+
     <div id="adminList" style="padding:6px 18px 24px;display:flex;flex-direction:column;gap:12px;"></div>
     <a class="admin-logout" href="javascript:void(0)" onclick="logoutAdmin()">Sair da área do administrador</a>
   </div>
@@ -525,7 +560,7 @@ const CONFIG = {
   TOKEN: ''
 };
 
-const bairros = ["Nova Cidade", "Candeias", "Recreio", "Jurema", "Guarani", "Centro", "Ibirapuera", "Patagônia"];
+let bairros = ["Nova Cidade", "Candeias", "Recreio", "Jurema", "Guarani", "Centro", "Ibirapuera", "Patagônia"];
 
 // Dados de exemplo — usados só até a planilha estar configurada, ou como fallback offline.
 const SEED_CARROCEIROS = [
@@ -619,6 +654,8 @@ async function carregarCarroceiros(){
     const data = await jsonp(CONFIG.SHEETS_URL, { action:'list', token: CONFIG.TOKEN });
     if(!data.success) throw new Error(data.error || 'erro desconhecido');
     carroceiros = data.carroceiros;
+    if(Array.isArray(data.servicos) && data.servicos.length) SERVICOS = data.servicos.concat(['Outro']);
+    if(Array.isArray(data.bairros) && data.bairros.length) bairros = data.bairros;
     salvarLocal();
     setSyncStatus('ok');
   } catch(err){
@@ -626,6 +663,11 @@ async function carregarCarroceiros(){
     carroceiros = carregarLocal() || SEED_CARROCEIROS;
     setSyncStatus('err');
   }
+}
+
+function registrarClique(carroceiroId){
+  if(!CONFIG.SHEETS_URL) return;
+  jsonp(CONFIG.SHEETS_URL, { action:'clique', carroceiroId }).catch(() => {});
 }
 
 async function enviarAvaliacao(carroceiroId, autor, nota, texto){
@@ -811,11 +853,11 @@ function renderPerfil(){
     </div>
 
     <div class="actions">
-      <a class="btn btn-wpp" href="${waLink}" target="_blank">
+      <a class="btn btn-wpp" href="${waLink}" target="_blank" onclick="registrarClique(${c.id})">
         <svg class="icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2m0 2a8 8 0 0 1 6.9 12.1l-.3.5.5 2.9-2.9-.8-.5.3A8 8 0 1 1 12 4m-3.4 4.1c-.2 0-.5 0-.7.3-.3.3-1 1-1 2.3s1 2.7 1.2 2.9c.1.1 2 3.1 4.8 4.3 2.4 1 2.9.8 3.4.8.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4l-2.1-1c-.3-.1-.5-.2-.7.2s-.9 1-1 1.2c-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.3-.2-.3 0-.5.1-.7l.5-.6c.1-.2.2-.3.3-.5s0-.4 0-.5c0-.2-.7-1.8-1-2.4-.2-.6-.5-.5-.7-.5z"/></svg>
         WhatsApp
       </a>
-      <a class="btn btn-call" href="tel:${c.telefone}">
+      <a class="btn btn-call" href="tel:${c.telefone}" onclick="registrarClique(${c.id})">
         <svg class="icon" viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.7 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.1 21 3 13.9 3 5c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1z"/></svg>
         Ligar
       </a>
@@ -872,7 +914,7 @@ let areasSelecionadas = [];
 let cadastroFotos = {};
 const FOTO_FIELDS = ['fFotoCarroceiro','fComprovanteResidencia','fComprovantePrefeitura','fFotoAnimal','fComprovanteVacinacao'];
 
-const SERVICOS = ['Coleta de entulho', 'Mudança pequena', 'Poda de árvore', 'Areia', 'Brita', 'Retroescavadeira', 'Terraplanagem', 'Limpeza de terrenos', 'Serviços pesados', 'Outro'];
+let SERVICOS = ['Coleta de entulho', 'Mudança pequena', 'Poda de árvore', 'Areia', 'Brita', 'Retroescavadeira', 'Terraplanagem', 'Limpeza de terrenos', 'Serviços pesados', 'Outro'];
 let servicosSelecionados = [];
 
 function renderAreasCadastro(){
@@ -1112,7 +1154,47 @@ document.getElementById('formAdminLogin').addEventListener('submit', async (e) =
 
 async function abrirPainelAdmin(){
   showScreen('adminPainel');
+  renderAdminConfigChips();
   await carregarPainelAdmin();
+}
+
+function renderAdminConfigChips(){
+  document.getElementById('adminServicosChips').innerHTML =
+    SERVICOS.filter(s => s !== 'Outro').map(s => `<span>${s}</span>`).join('');
+  document.getElementById('adminBairrosChips').innerHTML =
+    bairros.map(b => `<span>${b}</span>`).join('');
+}
+
+async function adminAdicionarOpcao(tipo){
+  const inputId = tipo === 'servico' ? 'fAdminNovoServico' : 'fAdminNovoBairro';
+  const msgId = tipo === 'servico' ? 'adminServicoMsg' : 'adminBairroMsg';
+  const input = document.getElementById(inputId);
+  const msg = document.getElementById(msgId);
+  const valor = input.value.trim();
+  msg.textContent = '';
+  msg.className = 'admin-config-msg';
+  if(!valor){ msg.textContent = 'Digite um valor.'; msg.classList.add('err'); return; }
+  try{
+    const res = await fetch(CONFIG.SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'adminAdicionarOpcao', token: adminToken, tipo, valor })
+    });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error || 'erro ao adicionar');
+    if(tipo === 'servico' && !SERVICOS.includes(valor)) SERVICOS.splice(SERVICOS.length - 1, 0, valor);
+    if(tipo === 'bairro' && !bairros.includes(valor)) bairros.push(valor);
+    salvarLocal();
+    renderAdminConfigChips();
+    input.value = '';
+    msg.textContent = 'Adicionado!';
+    msg.classList.add('ok');
+  } catch(err){
+    const m = String(err.message || '');
+    if(m.includes('sessão') || m.includes('inválid')){ logoutAdmin(); return; }
+    msg.textContent = m;
+    msg.classList.add('err');
+  }
 }
 
 async function carregarPainelAdmin(){
@@ -1156,6 +1238,26 @@ function renderAdminList(){
       c.fotoAnimalUrl && ['Foto animal', c.fotoAnimalUrl],
       c.comprovanteVacinacaoUrl && ['Comprov. vacinação', c.comprovanteVacinacaoUrl]
     ].filter(Boolean);
+    let acoesHtml;
+    if(c.status === 'Pendente'){
+      acoesHtml = `
+        <div class="admin-actions">
+          <button class="btn btn-approve" onclick="decidirCadastro('${c.id}','Aprovado')">Aprovar</button>
+          <button class="btn btn-reject" onclick="decidirCadastro('${c.id}','Rejeitado')">Rejeitar</button>
+        </div>
+        <button class="btn-danger-text" onclick="excluirCarroceiro('${c.id}')">Excluir cadastro</button>`;
+    } else if(c.status === 'Excluido'){
+      acoesHtml = `
+        <div class="admin-actions">
+          <button class="btn btn-neutral" onclick="decidirCadastro('${c.id}','Pendente')">Restaurar</button>
+        </div>`;
+    } else {
+      acoesHtml = `
+        <div class="admin-actions">
+          <button class="btn btn-neutral" onclick="decidirCadastro('${c.id}','Pendente')">Voltar pra pendente</button>
+        </div>
+        <button class="btn-danger-text" onclick="excluirCarroceiro('${c.id}')">Excluir</button>`;
+    }
     return `<div class="admin-card">
       <div class="admin-card-top">
         <div>
@@ -1167,23 +1269,22 @@ function renderAdminList(){
             Tel: ${c.telefone || '—'} · Cad. prefeitura: ${c.numeroCadastroPrefeitura || '—'}${c.numeroCarrocaLegal ? ' · Carroça Legal: ' + c.numeroCarrocaLegal : ''}<br>
             Endereço: ${c.endereco || '—'}
           </div>
+          <div class="admin-cliques">${c.cliques || 0} clique${c.cliques === 1 ? '' : 's'} em WhatsApp/Ligar</div>
         </div>
         <div class="admin-status-tag ${statusClass}">${c.status || '—'}</div>
       </div>
       ${docs.length ? `<div class="admin-docs">${docs.map(([label,url]) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`).join('')}</div>` : ''}
-      ${c.status === 'Pendente' ? `
-        <div class="admin-actions">
-          <button class="btn btn-approve" onclick="decidirCadastro('${c.id}','Aprovado')">Aprovar</button>
-          <button class="btn btn-reject" onclick="decidirCadastro('${c.id}','Rejeitado')">Rejeitar</button>
-        </div>` : `
-        <div class="admin-actions">
-          <button class="btn btn-neutral" onclick="decidirCadastro('${c.id}','Pendente')">Voltar pra pendente</button>
-        </div>`}
+      ${acoesHtml}
     </div>`;
   }
 
   const html = pendentes.map(cardHtml).join('') + outros.map(cardHtml).join('');
   wrap.innerHTML = html || '<div class="empty-lista">Nenhum cadastro ainda.</div>';
+}
+
+function excluirCarroceiro(id){
+  if(!confirm('Tem certeza que quer excluir esse cadastro? Ele some da busca pública, mas os dados continuam guardados na planilha — dá pra restaurar depois.')) return;
+  decidirCadastro(id, 'Excluido');
 }
 
 async function decidirCadastro(id, status){
