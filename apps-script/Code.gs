@@ -51,8 +51,12 @@ var CARROCEIRO_HEADERS = [
   'Status', 'FotoUrl', 'NomeCompleto', 'CPF', 'Endereco',
   'NumeroCadastroPrefeitura', 'NumeroCarrocaLegal',
   'ComprovanteResidenciaUrl', 'ComprovantePrefeituraUrl',
-  'FotoAnimalUrl', 'ComprovanteVacinacaoUrl', 'TermosAceitos'
+  'FotoAnimalUrl', 'ComprovanteVacinacaoUrl', 'TermosAceitos', 'Cliques'
 ];
+
+var CONFIG_SHEET = 'Config';
+var SERVICOS_PADRAO = ['Coleta de entulho', 'Mudança pequena', 'Poda de árvore', 'Areia', 'Brita', 'Retroescavadeira', 'Terraplanagem', 'Limpeza de terrenos', 'Serviços pesados'];
+var BAIRROS_PADRAO = ['Nova Cidade', 'Candeias', 'Recreio', 'Jurema', 'Guarani', 'Centro', 'Ibirapuera', 'Patagônia'];
 
 /**
  * Execute esta função uma vez, manualmente, para criar as abas e cabeçalhos
@@ -71,7 +75,7 @@ function setup() {
     carroceiros.appendRow([
       1, 'Zé Raimundo', 'Coleta de entulho e mudanças pequenas', 'Nova Cidade, Candeias',
       '5577988013134', 'TRUE', '8 anos de atuação', new Date(),
-      'Aprovado', '', '', '', '', '', '', '', '', '', '', ''
+      'Aprovado', '', '', '', '', '', '', '', '', '', '', '', 0
     ]);
     carroceiros.setFrozenRows(1);
   }
@@ -84,13 +88,15 @@ function setup() {
     avaliacoes.setFrozenRows(1);
   }
 
+  getConfigSheet(); // cria a aba Config (servicos/bairros) se ainda não existir
+
   // remove a aba padrão "Página1"/"Sheet1" se ela ainda existir vazia
   ['Página1', 'Sheet1'].forEach(function (nome) {
     var s = ss.getSheetByName(nome);
     if (s && s.getLastRow() === 0) ss.deleteSheet(s);
   });
 
-  Logger.log('Setup concluído: abas Carroceiros e Avaliacoes prontas.');
+  Logger.log('Setup concluído: abas Carroceiros, Avaliacoes e Config prontas.');
 }
 
 /**
@@ -121,9 +127,12 @@ function doGet(e) {
     if (TOKEN && params.token !== TOKEN) {
       result = { success: false, error: 'token inválido' };
     } else if (action === 'list') {
-      result = { success: true, carroceiros: listarCarroceiros() };
+      var opcoes = listarOpcoes();
+      result = { success: true, carroceiros: listarCarroceiros(), servicos: opcoes.servicos, bairros: opcoes.bairros };
     } else if (action === 'avaliar') {
       result = avaliar(params);
+    } else if (action === 'clique') {
+      result = registrarClique(params.carroceiroId);
     } else {
       result = { success: false, error: 'ação desconhecida: ' + action };
     }
@@ -156,6 +165,10 @@ function doPost(e) {
     } else if (body.action === 'adminAtualizarStatus') {
       result = tokenAdminValido(body.token)
         ? atualizarStatusCarroceiro(body.id, body.status)
+        : { success: false, error: 'sessão expirada, faça login novamente' };
+    } else if (body.action === 'adminAdicionarOpcao') {
+      result = tokenAdminValido(body.token)
+        ? adicionarOpcao(body.tipo, body.valor)
         : { success: false, error: 'sessão expirada, faça login novamente' };
     } else if (TOKEN && body.token !== TOKEN) {
       result = { success: false, error: 'token inválido' };
@@ -227,13 +240,95 @@ function listarCarroceirosAdmin() {
       comprovanteResidenciaUrl: c.ComprovanteResidenciaUrl,
       comprovantePrefeituraUrl: c.ComprovantePrefeituraUrl,
       fotoAnimalUrl: c.FotoAnimalUrl,
-      comprovanteVacinacaoUrl: c.ComprovanteVacinacaoUrl
+      comprovanteVacinacaoUrl: c.ComprovanteVacinacaoUrl,
+      cliques: Number(c.Cliques) || 0
     };
   }).sort(function (a, b) { return new Date(b.dataCadastro) - new Date(a.dataCadastro); });
 }
 
+function registrarClique(carroceiroId) {
+  if (!carroceiroId) return { success: false, error: 'carroceiroId obrigatório' };
+  var sheet = getSheet(SHEET_CARROCEIROS);
+  var values = sheet.getDataRange().getValues();
+  var headers = values[0];
+  var colId = headers.indexOf('ID');
+  var colCliques = headers.indexOf('Cliques');
+  if (colId === -1 || colCliques === -1) return { success: false, error: 'coluna Cliques não encontrada — rode migrarColunas()' };
+
+  for (var r = 1; r < values.length; r++) {
+    if (String(values[r][colId]) === String(carroceiroId)) {
+      var atual = Number(values[r][colCliques]) || 0;
+      sheet.getRange(r + 1, colCliques + 1).setValue(atual + 1);
+      return { success: true };
+    }
+  }
+  return { success: false, error: 'carroceiro não encontrado' };
+}
+
+// Aba "Config": lista de serviços e bairros editável pelo painel do admin,
+// sem precisar mexer no código. Criada sozinha (com os valores padrão de
+// hoje) na primeira vez que alguém chamar getConfigSheet() — não precisa de
+// migração manual.
+function getConfigSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(CONFIG_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(CONFIG_SHEET);
+    sheet.appendRow(['Servicos', 'Bairros']);
+    var maxLen = Math.max(SERVICOS_PADRAO.length, BAIRROS_PADRAO.length);
+    for (var i = 0; i < maxLen; i++) {
+      sheet.appendRow([SERVICOS_PADRAO[i] || '', BAIRROS_PADRAO[i] || '']);
+    }
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function listarOpcoes() {
+  var sheet = getConfigSheet();
+  var values = sheet.getDataRange().getValues();
+  var headers = values[0];
+  var colServicos = headers.indexOf('Servicos');
+  var colBairros = headers.indexOf('Bairros');
+  var servicos = [];
+  var bairros = [];
+  for (var r = 1; r < values.length; r++) {
+    var s = String(values[r][colServicos] || '').trim();
+    var b = String(values[r][colBairros] || '').trim();
+    if (s) servicos.push(s);
+    if (b) bairros.push(b);
+  }
+  return { servicos: servicos, bairros: bairros };
+}
+
+function adicionarOpcao(tipo, valor) {
+  valor = String(valor || '').trim();
+  if (!valor) return { success: false, error: 'valor obrigatório' };
+  if (['servico', 'bairro'].indexOf(tipo) === -1) return { success: false, error: 'tipo inválido' };
+
+  var colName = tipo === 'servico' ? 'Servicos' : 'Bairros';
+  var sheet = getConfigSheet();
+  var lastCol = sheet.getLastColumn();
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var col = headers.indexOf(colName) + 1; // 1-indexed
+  if (col === 0) return { success: false, error: 'coluna não encontrada: ' + colName };
+
+  var lastRow = sheet.getLastRow();
+  var colValues = lastRow > 1 ? sheet.getRange(2, col, lastRow - 1, 1).getValues() : [];
+  var linhaAlvo = 2 + colValues.length; // padrão: logo depois da última linha usada
+  for (var i = 0; i < colValues.length; i++) {
+    var atual = String(colValues[i][0] || '').trim();
+    if (atual.toLowerCase() === valor.toLowerCase()) {
+      return { success: false, error: 'esse ' + (tipo === 'servico' ? 'serviço' : 'bairro') + ' já existe' };
+    }
+    if (atual === '') { linhaAlvo = 2 + i; break; }
+  }
+  sheet.getRange(linhaAlvo, col).setValue(valor);
+  return { success: true };
+}
+
 function atualizarStatusCarroceiro(id, status) {
-  var statusValidos = ['Pendente', 'Aprovado', 'Rejeitado'];
+  var statusValidos = ['Pendente', 'Aprovado', 'Rejeitado', 'Excluido'];
   if (!id) return { success: false, error: 'id obrigatório' };
   if (statusValidos.indexOf(status) === -1) return { success: false, error: 'status inválido' };
 
@@ -308,7 +403,7 @@ function listarCarroceiros() {
   var avaliacoesRaw = sheetToObjects(getSheet(SHEET_AVALIACOES));
 
   return carroceirosRaw
-    .filter(function (c) { return c.Status !== 'Pendente' && c.Status !== 'Rejeitado'; })
+    .filter(function (c) { return c.Status !== 'Pendente' && c.Status !== 'Rejeitado' && c.Status !== 'Excluido'; })
     .map(function (c) {
       var reviews = avaliacoesRaw
         .filter(function (a) { return String(a.CarroceiroID) === String(c.ID); })
