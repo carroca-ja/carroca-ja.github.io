@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <style>
   :root{
     --night:#241C17;
@@ -292,6 +294,23 @@
   .btn-reject{background:var(--brick);color:#fff;}
   .btn-neutral{background:var(--bg);color:var(--ink);border:1px solid var(--line);flex:none;padding:10px 16px;font-size:12px;}
   .admin-logout{display:block;text-align:center;margin:6px 18px 24px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;}
+
+  /* ---------- Mapa (cadastro e tela pública) ---------- */
+  .map-field{margin-bottom:16px;}
+  .map-hint{font-size:12px;color:var(--muted);margin:0 0 8px;line-height:1.5;}
+  .map-picker{height:220px;border-radius:var(--radius-md);border:1.5px solid var(--line);overflow:hidden;}
+  .map-picker-status{font-size:11.5px;font-weight:700;color:var(--leaf);margin-top:6px;}
+  .map-picker-status.pendente{color:var(--muted);}
+  #screenMapa{flex:1;overflow-y:auto;display:none;flex-direction:column;}
+  #screenMapa .lista-header{padding:20px 18px 12px;}
+  #mapaGrande{flex:1;min-height:0;}
+  .map-popup-btn{background:var(--mustard);color:#fff;border:none;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;font-family:'Manrope',sans-serif;cursor:pointer;margin-top:4px;}
+  .map-legend{display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px;background:var(--card);border-top:1px solid var(--line);flex-shrink:0;}
+  .map-legend span{font-size:10.5px;font-weight:700;color:var(--muted);background:var(--bg);border-radius:999px;padding:5px 10px;display:flex;align-items:center;gap:5px;}
+  .map-legend img{width:14px;height:14px;object-fit:contain;}
+  .pin-icon-marker{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));}
+  #screenEditarLocal{flex:1;overflow-y:auto;display:none;padding:22px 18px 30px;}
+  #screenEditarLocal .map-picker{height:320px;}
 </style>
 </head>
 <body>
@@ -321,6 +340,11 @@
       <div class="menu-card" onclick="goToBairros(null)">
         <div class="menu-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"/></svg></div>
         <div class="menu-label">Localizar um carroceiro</div>
+        <svg class="icon menu-arrow" viewBox="0 0 24 24"><path d="M8.5 4.5 16 12l-7.5 7.5-1.4-1.4L13.1 12 6.1 5.9z"/></svg>
+      </div>
+      <div class="menu-card" onclick="abrirMapa()">
+        <div class="menu-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M15 4 9 6 3 4v15l6 2 6-2 6 2V6zm-1 2.9 4 1.3v11l-4-1.3zM5 6.2l3-1v11.6l-3 1z"/></svg></div>
+        <div class="menu-label">Ver no mapa</div>
         <svg class="icon menu-arrow" viewBox="0 0 24 24"><path d="M8.5 4.5 16 12l-7.5 7.5-1.4-1.4L13.1 12 6.1 5.9z"/></svg>
       </div>
       <div class="menu-card" onclick="goToBairros('Retroescavadeira')">
@@ -393,19 +417,35 @@
 
       <form id="formCadastro" novalidate>
         <div class="form-section">
+          <div class="form-section-title">O que você faz?</div>
+          <div class="field">
+            <label>Escolha uma opção</label>
+            <div class="chip-select" id="fTipoPrestador"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
           <div class="form-section-title">Como você aparece no app</div>
           <div class="field">
             <label>Nome ou apelido</label>
             <input type="text" id="fNome" placeholder="Ex: Zé Raimundo">
           </div>
-          <div class="field">
-            <label>Serviço que você presta</label>
-            <div class="chip-select" id="fServicos"></div>
-            <input type="text" id="fServicoOutro" placeholder="Outro serviço (opcional)" style="margin-top:8px;display:none;">
+          <div id="blocoCarroceiroServico">
+            <div class="field">
+              <label>Serviço que você presta</label>
+              <div class="chip-select" id="fServicos"></div>
+              <input type="text" id="fServicoOutro" placeholder="Outro serviço (opcional)" style="margin-top:8px;display:none;">
+            </div>
+            <div class="field">
+              <label>Bairros onde você atua</label>
+              <div class="chip-select" id="fAreas"></div>
+            </div>
           </div>
-          <div class="field">
-            <label>Bairros onde você atua</label>
-            <div class="chip-select" id="fAreas"></div>
+          <div class="field map-field">
+            <label id="lblLocalizacao">Onde você trabalha (opcional)</label>
+            <p class="map-hint" id="hintLocalizacao">Clique no mapa pra marcar o ponto onde você costuma trabalhar. Dá pra atualizar isso depois, todo dia se quiser.</p>
+            <div class="map-picker" id="mapaCadastro"></div>
+            <div class="map-picker-status pendente" id="localizacaoStatus">Nenhum ponto marcado ainda</div>
           </div>
           <div class="field">
             <label>Há quanto tempo você trabalha nisso? (opcional)</label>
@@ -432,13 +472,15 @@
             <label>Endereço completo</label>
             <textarea id="fEndereco" placeholder="Rua, número, bairro"></textarea>
           </div>
-          <div class="field">
-            <label>Número de cadastro na prefeitura</label>
-            <input type="text" id="fNumeroPrefeitura">
-          </div>
-          <div class="field">
-            <label>Número de registro no Carroça Legal (opcional, se já tiver)</label>
-            <input type="text" id="fNumeroCarrocaLegal">
+          <div id="blocoCarroceiroDados">
+            <div class="field">
+              <label>Número de cadastro na prefeitura</label>
+              <input type="text" id="fNumeroPrefeitura">
+            </div>
+            <div class="field">
+              <label>Número de registro no Carroça Legal (opcional, se já tiver)</label>
+              <input type="text" id="fNumeroCarrocaLegal">
+            </div>
           </div>
         </div>
 
@@ -454,20 +496,34 @@
             <input type="file" accept="image/*" id="fComprovanteResidencia">
             <div class="file-preview" id="pvComprovanteResidencia"></div>
           </div>
-          <div class="file-field">
-            <label>Foto do comprovante de cadastro na prefeitura</label>
-            <input type="file" accept="image/*" id="fComprovantePrefeitura">
-            <div class="file-preview" id="pvComprovantePrefeitura"></div>
+          <div id="blocoCarroceiroFotos">
+            <div class="file-field">
+              <label>Foto do comprovante de cadastro na prefeitura</label>
+              <input type="file" accept="image/*" id="fComprovantePrefeitura">
+              <div class="file-preview" id="pvComprovantePrefeitura"></div>
+            </div>
+            <div class="file-field">
+              <label>Foto do animal (opcional)</label>
+              <input type="file" accept="image/*" id="fFotoAnimal">
+              <div class="file-preview" id="pvFotoAnimal"></div>
+            </div>
+            <div class="file-field">
+              <label>Comprovante de vacinação do animal (opcional)</label>
+              <input type="file" accept="image/*" id="fComprovanteVacinacao">
+              <div class="file-preview" id="pvComprovanteVacinacao"></div>
+            </div>
           </div>
-          <div class="file-field">
-            <label>Foto do animal (opcional)</label>
-            <input type="file" accept="image/*" id="fFotoAnimal">
-            <div class="file-preview" id="pvFotoAnimal"></div>
-          </div>
-          <div class="file-field">
-            <label>Comprovante de vacinação do animal (opcional)</label>
-            <input type="file" accept="image/*" id="fComprovanteVacinacao">
-            <div class="file-preview" id="pvComprovanteVacinacao"></div>
+          <div id="blocoPrestadorFotos" style="display:none;">
+            <div class="file-field">
+              <label>Foto do veículo/equipamento</label>
+              <input type="file" accept="image/*" id="fFotoVeiculo">
+              <div class="file-preview" id="pvFotoVeiculo"></div>
+            </div>
+            <div class="file-field">
+              <label>Foto da CNH</label>
+              <input type="file" accept="image/*" id="fCnh">
+              <div class="file-preview" id="pvCnh"></div>
+            </div>
           </div>
         </div>
 
@@ -542,6 +598,26 @@
 
     <div id="adminList" style="padding:6px 18px 24px;display:flex;flex-direction:column;gap:12px;"></div>
     <a class="admin-logout" href="javascript:void(0)" onclick="logoutAdmin()">Sair da área do administrador</a>
+  </div>
+
+  <!-- TELA: mapa público -->
+  <div id="screenMapa">
+    <div class="lista-header">
+      <h2>Mapa de prestadores</h2>
+      <p id="mapaSub">carregando…</p>
+    </div>
+    <div id="mapaGrande"></div>
+    <div class="map-legend" id="mapaLegenda"></div>
+  </div>
+
+  <!-- TELA: editar localização (link pessoal, sem login) -->
+  <div id="screenEditarLocal">
+    <div class="screen-title">Atualizar sua localização</div>
+    <p class="screen-sub">Clique no mapa pra marcar o novo ponto onde você está trabalhando hoje.</p>
+    <div class="map-picker" id="mapaEditarLocal"></div>
+    <div class="map-picker-status pendente" id="editarLocalStatus">Nenhum ponto marcado ainda</div>
+    <div class="field-error" id="errEditarLocal" style="text-align:center;margin:12px 0;"></div>
+    <button type="button" class="btn-send" id="btnSalvarLocal" onclick="salvarEdicaoLocal()">Salvar localização</button>
   </div>
 
   <div class="bottom-nav">
@@ -732,6 +808,8 @@ function showScreen(name){
   document.getElementById('screenSobre').style.display = name==='sobre' ? 'block' : 'none';
   document.getElementById('screenAdminLogin').style.display = name==='adminLogin' ? 'block' : 'none';
   document.getElementById('screenAdminPainel').style.display = name==='adminPainel' ? 'flex' : 'none';
+  document.getElementById('screenMapa').style.display = name==='mapa' ? 'flex' : 'none';
+  document.getElementById('screenEditarLocal').style.display = name==='editarLocal' ? 'block' : 'none';
   document.querySelector('header').style.display = name==='home' ? 'none' : 'flex';
   document.getElementById('backBtn').style.display = name==='home' ? 'none' : 'flex';
   currentScreen = name;
@@ -746,6 +824,9 @@ document.getElementById('backBtn').addEventListener('click', () => {
     showScreen(cadastroVeioDaHome ? 'home' : 'bairro');
   } else if(currentScreen === 'adminLogin' || currentScreen === 'adminPainel'){
     showScreen('sobre');
+  } else if(currentScreen === 'mapa' || currentScreen === 'editarLocal'){
+    currentServiceFilter = null;
+    showScreen('home');
   } else {
     currentServiceFilter = null;
     showScreen('home');
@@ -912,10 +993,71 @@ async function submitReview(){
 // ---------- Tela 4: cadastro de carroceiro ----------
 let areasSelecionadas = [];
 let cadastroFotos = {};
-const FOTO_FIELDS = ['fFotoCarroceiro','fComprovanteResidencia','fComprovantePrefeitura','fFotoAnimal','fComprovanteVacinacao'];
+const FOTO_FIELDS = ['fFotoCarroceiro','fComprovanteResidencia','fComprovantePrefeitura','fFotoAnimal','fComprovanteVacinacao','fFotoVeiculo','fCnh'];
 
 let SERVICOS = ['Coleta de entulho', 'Mudança pequena', 'Poda de árvore', 'Areia', 'Brita', 'Retroescavadeira', 'Terraplanagem', 'Limpeza de terrenos', 'Serviços pesados', 'Outro'];
 let servicosSelecionados = [];
+
+// ---------- Tipos de prestador / mapa ----------
+const TIPOS_PRESTADOR = ['Carroceiro', 'Retroescavadeira', 'Trator/Pá carregadeira', 'Caminhão Baú', 'Pickup', 'Caçamba'];
+const MODALIDADE_ICONE = {
+  'Carroceiro': 'icons/pin-carroca.png',
+  'Retroescavadeira': 'icons/pin-retroescavadeira.png',
+  'Trator/Pá carregadeira': 'icons/pin-retroescavadeira.png',
+  'Caminhão Baú': 'icons/pin-caminhao-frete.png',
+  'Pickup': 'icons/pin-pickup.png',
+  'Caçamba': 'icons/pin-caminhao-areia.png'
+};
+const VC_CENTER = [-14.8661, -40.8394]; // Vitória da Conquista - BA
+
+let selectedTipo = 'Carroceiro';
+let cadastroLat = null, cadastroLng = null;
+let mapaCadastroInstance = null, mapaCadastroMarker = null;
+
+function renderTipoCadastro(){
+  const wrap = document.getElementById('fTipoPrestador');
+  wrap.innerHTML = TIPOS_PRESTADOR.map(t => `<div class="chip${t===selectedTipo?' active':''}" data-t="${t}">${t}</div>`).join('');
+  wrap.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      selectedTipo = chip.dataset.t;
+      wrap.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.t === selectedTipo));
+      atualizarVisibilidadeCadastro();
+    });
+  });
+}
+
+function atualizarVisibilidadeCadastro(){
+  const ehPrestador = selectedTipo !== 'Carroceiro';
+  document.getElementById('blocoCarroceiroServico').style.display = ehPrestador ? 'none' : '';
+  document.getElementById('blocoCarroceiroDados').style.display = ehPrestador ? 'none' : '';
+  document.getElementById('blocoCarroceiroFotos').style.display = ehPrestador ? 'none' : '';
+  document.getElementById('blocoPrestadorFotos').style.display = ehPrestador ? '' : 'none';
+  document.getElementById('lblLocalizacao').textContent = ehPrestador ? 'Onde você trabalha' : 'Onde você trabalha (opcional)';
+  document.getElementById('hintLocalizacao').textContent = ehPrestador
+    ? 'Clique no mapa pra marcar o ponto onde você trabalha — é assim que você aparece pra quem estiver procurando ' + selectedTipo.toLowerCase() + '. Dá pra atualizar todo dia se quiser.'
+    : 'Opcional: clique no mapa pra marcar um ponto de referência. Você continua aparecendo pela busca por bairro normalmente.';
+  setTimeout(() => { if(mapaCadastroInstance) mapaCadastroInstance.invalidateSize(); }, 60);
+}
+
+function initMapaCadastro(){
+  const el = document.getElementById('mapaCadastro');
+  if(mapaCadastroInstance){ mapaCadastroInstance.remove(); mapaCadastroInstance = null; }
+  mapaCadastroMarker = null;
+  cadastroLat = null; cadastroLng = null;
+  const st = document.getElementById('localizacaoStatus');
+  st.textContent = 'Nenhum ponto marcado ainda';
+  st.className = 'map-picker-status pendente';
+  mapaCadastroInstance = L.map(el, { attributionControl:false }).setView(VC_CENTER, 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(mapaCadastroInstance);
+  mapaCadastroInstance.on('click', (e) => {
+    cadastroLat = e.latlng.lat; cadastroLng = e.latlng.lng;
+    if(mapaCadastroMarker) mapaCadastroInstance.removeLayer(mapaCadastroMarker);
+    mapaCadastroMarker = L.marker(e.latlng).addTo(mapaCadastroInstance);
+    st.textContent = '✓ ponto marcado';
+    st.className = 'map-picker-status';
+  });
+  setTimeout(() => mapaCadastroInstance.invalidateSize(), 100);
+}
 
 function renderAreasCadastro(){
   const wrap = document.getElementById('fAreas');
@@ -1024,12 +1166,16 @@ function openCadastro(){
   cadastroFotos = {};
   areasSelecionadas = [];
   servicosSelecionados = [];
+  selectedTipo = 'Carroceiro';
   renderAreasCadastro();
   renderServicosCadastro();
+  renderTipoCadastro();
   document.querySelectorAll('.file-preview').forEach(el => el.innerHTML = '');
   document.getElementById('errGeral').textContent = '';
   document.getElementById('errCpf').textContent = '';
   showScreen('cadastro');
+  atualizarVisibilidadeCadastro();
+  setTimeout(initMapaCadastro, 60);
 }
 
 document.getElementById('formCadastro').addEventListener('submit', async (e) => {
@@ -1039,10 +1185,11 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
   errGeral.textContent = '';
   errCpf.textContent = '';
 
+  const ehPrestador = selectedTipo !== 'Carroceiro';
   const nome = document.getElementById('fNome').value.trim();
   const servicoOutro = document.getElementById('fServicoOutro').value.trim();
   const listaServicos = servicosSelecionados.map(s => s === 'Outro' ? servicoOutro : s).filter(Boolean);
-  const servico = listaServicos.join(', ');
+  const servico = ehPrestador ? selectedTipo : listaServicos.join(', ');
   const tempo = document.getElementById('fTempo').value.trim();
   const telefoneRaw = document.getElementById('fTelefone').value.trim();
   const nomeCompleto = document.getElementById('fNomeCompleto').value.trim();
@@ -1051,7 +1198,11 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
   const numeroPrefeitura = document.getElementById('fNumeroPrefeitura').value.trim();
   const numeroCarrocaLegal = document.getElementById('fNumeroCarrocaLegal').value.trim();
 
-  if(!nome || !servico || !areasSelecionadas.length || !telefoneRaw || !nomeCompleto || !cpf || !endereco || !numeroPrefeitura){
+  if(!nome || !telefoneRaw || !nomeCompleto || !cpf || !endereco){
+    errGeral.textContent = 'Preencha todos os campos obrigatórios (marcados sem "opcional").';
+    return;
+  }
+  if(!ehPrestador && (!servico || !areasSelecionadas.length || !numeroPrefeitura)){
     errGeral.textContent = 'Preencha todos os campos obrigatórios (marcados sem "opcional").';
     return;
   }
@@ -1059,8 +1210,20 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
     errCpf.textContent = 'Esse CPF não parece válido — confere os números.';
     return;
   }
-  if(!cadastroFotos.fComprovanteResidencia || !cadastroFotos.fComprovantePrefeitura){
-    errGeral.textContent = 'Envie as fotos do comprovante de residência e do cadastro na prefeitura.';
+  if(!cadastroFotos.fComprovanteResidencia){
+    errGeral.textContent = 'Envie a foto do comprovante de residência.';
+    return;
+  }
+  if(!ehPrestador && !cadastroFotos.fComprovantePrefeitura){
+    errGeral.textContent = 'Envie a foto do comprovante de cadastro na prefeitura.';
+    return;
+  }
+  if(ehPrestador && (!cadastroFotos.fFotoVeiculo || !cadastroFotos.fCnh)){
+    errGeral.textContent = 'Envie a foto do veículo/equipamento e a foto da CNH.';
+    return;
+  }
+  if(ehPrestador && (cadastroLat === null || cadastroLng === null)){
+    errGeral.textContent = 'Clique no mapa pra marcar onde você trabalha.';
     return;
   }
   const termosOk = ['tAnimais','tDescarte','tVeracidade','tLgpd'].every(id => document.getElementById(id).checked);
@@ -1077,18 +1240,22 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
     action: 'cadastrar',
     token: CONFIG.TOKEN,
     nome, servico, tempo,
-    areas: areasSelecionadas,
+    areas: ehPrestador ? [] : areasSelecionadas,
+    modalidade: ehPrestador ? selectedTipo : '',
     telefone: telefoneRaw.replace(/\D/g,''),
     nomeCompleto,
     cpf: cpf.replace(/\D/g,''),
     endereco,
     numeroCadastroPrefeitura: numeroPrefeitura,
     numeroCarrocaLegal,
+    lat: cadastroLat, lng: cadastroLng,
     fotoCarroceiro: cadastroFotos.fFotoCarroceiro || '',
     comprovanteResidencia: cadastroFotos.fComprovanteResidencia || '',
     comprovantePrefeitura: cadastroFotos.fComprovantePrefeitura || '',
     fotoAnimal: cadastroFotos.fFotoAnimal || '',
     comprovanteVacinacao: cadastroFotos.fComprovanteVacinacao || '',
+    fotoVeiculo: cadastroFotos.fFotoVeiculo || '',
+    cnh: cadastroFotos.fCnh || '',
     termoAnimais: true, termoDescarte: true, termoVeracidade: true, termoLgpd: true
   };
 
@@ -1103,10 +1270,17 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
     if(!data.success) throw new Error(data.error || 'erro desconhecido');
     document.getElementById('formCadastro').style.display = 'none';
     document.getElementById('cadastroSucesso').style.display = 'block';
+    let linkHtml = '';
+    if(data.chaveEdicao){
+      const link = location.origin + location.pathname + '?editarLocal=' + data.id + '&chave=' + data.chaveEdicao;
+      linkHtml = `<p style="margin-top:18px;">Guarde este link pra atualizar sua localização quando quiser:</p>
+        <p style="word-break:break-all;font-size:12px;background:var(--bg);padding:10px 12px;border-radius:var(--radius-sm);">${link}</p>`;
+    }
     document.getElementById('cadastroSucesso').innerHTML = `
       <svg class="icon icon-ok" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M20 6 9 17l-5-5"/></svg>
       <h3>Cadastro enviado!</h3>
       <p>Vamos conferir seus documentos e você aparece no app assim que for aprovado. Isso costuma levar alguns dias.</p>
+      ${linkHtml}
     `;
   } catch(err){
     errGeral.textContent = 'Não consegui enviar agora (' + err.message + '). Confere sua internet e tenta de novo.';
@@ -1115,6 +1289,109 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
     btn.textContent = 'Enviar cadastro';
   }
 });
+
+// ---------- Mapa público ----------
+let mapaGrandeInstance = null;
+
+function pinIcon(modalidade){
+  const src = MODALIDADE_ICONE[modalidade] || MODALIDADE_ICONE['Carroceiro'];
+  return L.icon({ iconUrl: src, iconSize:[38,38], iconAnchor:[19,36], popupAnchor:[0,-32], className:'pin-icon-marker' });
+}
+
+function abrirMapa(){
+  showScreen('mapa');
+  const sub = document.getElementById('mapaSub');
+  const comLocal = carroceiros.filter(c => c.online !== false && c.lat !== null && c.lat !== undefined && c.lng !== null && c.lng !== undefined);
+  sub.textContent = comLocal.length + ' prestador' + (comLocal.length===1?'':'es') + ' com localização marcada';
+
+  const legendaSet = {};
+  comLocal.forEach(c => { legendaSet[c.modalidade || 'Carroceiro'] = true; });
+  document.getElementById('mapaLegenda').innerHTML = Object.keys(legendaSet).map(m =>
+    `<span><img src="${MODALIDADE_ICONE[m] || MODALIDADE_ICONE['Carroceiro']}" alt="">${m}</span>`
+  ).join('') || '<span>Nenhum prestador com localização ainda</span>';
+
+  setTimeout(() => {
+    const el = document.getElementById('mapaGrande');
+    if(mapaGrandeInstance){ mapaGrandeInstance.remove(); mapaGrandeInstance = null; }
+    mapaGrandeInstance = L.map(el, { attributionControl:false }).setView(VC_CENTER, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(mapaGrandeInstance);
+    comLocal.forEach(c => {
+      const marker = L.marker([c.lat, c.lng], { icon: pinIcon(c.modalidade || 'Carroceiro') }).addTo(mapaGrandeInstance);
+      const popupEl = document.createElement('div');
+      popupEl.innerHTML = `<b>${c.nome}</b><br><span style="font-size:11.5px;color:#8C8175;">${c.modalidade || 'Carroceiro'}</span><br>`;
+      const btn = document.createElement('button');
+      btn.className = 'map-popup-btn';
+      btn.textContent = 'Ver perfil';
+      btn.onclick = () => openPerfil(c.id);
+      popupEl.appendChild(btn);
+      marker.bindPopup(popupEl);
+    });
+    mapaGrandeInstance.invalidateSize();
+  }, 60);
+}
+
+// ---------- Editar localização (link pessoal, sem login) ----------
+let editarLocalId = null, editarLocalChave = null;
+let mapaEditarInstance = null, mapaEditarMarker = null;
+let editarLocalLat = null, editarLocalLng = null;
+
+function abrirEditarLocal(id, chave){
+  editarLocalId = id; editarLocalChave = chave;
+  editarLocalLat = null; editarLocalLng = null;
+  document.getElementById('errEditarLocal').textContent = '';
+  const st = document.getElementById('editarLocalStatus');
+  st.textContent = 'Nenhum ponto marcado ainda';
+  st.className = 'map-picker-status pendente';
+  showScreen('editarLocal');
+  setTimeout(() => {
+    const el = document.getElementById('mapaEditarLocal');
+    if(mapaEditarInstance){ mapaEditarInstance.remove(); mapaEditarInstance = null; }
+    mapaEditarMarker = null;
+    const atual = carroceiros.find(c => String(c.id) === String(id));
+    const centro = (atual && atual.lat && atual.lng) ? [atual.lat, atual.lng] : VC_CENTER;
+    mapaEditarInstance = L.map(el, { attributionControl:false }).setView(centro, 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(mapaEditarInstance);
+    if(atual && atual.lat && atual.lng){
+      mapaEditarMarker = L.marker(centro).addTo(mapaEditarInstance);
+      editarLocalLat = atual.lat; editarLocalLng = atual.lng;
+      st.textContent = '✓ ponto marcado (posição atual)';
+      st.className = 'map-picker-status';
+    }
+    mapaEditarInstance.on('click', (e) => {
+      editarLocalLat = e.latlng.lat; editarLocalLng = e.latlng.lng;
+      if(mapaEditarMarker) mapaEditarInstance.removeLayer(mapaEditarMarker);
+      mapaEditarMarker = L.marker(e.latlng).addTo(mapaEditarInstance);
+      st.textContent = '✓ novo ponto marcado';
+      st.className = 'map-picker-status';
+    });
+    mapaEditarInstance.invalidateSize();
+  }, 60);
+}
+
+async function salvarEdicaoLocal(){
+  const err = document.getElementById('errEditarLocal');
+  err.textContent = '';
+  if(editarLocalLat === null || editarLocalLng === null){
+    err.textContent = 'Clique no mapa pra marcar o ponto primeiro.';
+    return;
+  }
+  const btn = document.getElementById('btnSalvarLocal');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  try{
+    const res = await fetch(CONFIG.SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action:'atualizarLocalizacao', id: editarLocalId, chave: editarLocalChave, lat: editarLocalLat, lng: editarLocalLng })
+    });
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error || 'erro ao salvar');
+    btn.textContent = '✓ Localização atualizada!';
+    await carregarCarroceiros();
+  } catch(e){
+    err.textContent = e.message;
+    btn.disabled = false; btn.textContent = 'Salvar localização';
+  }
+}
 
 // ---------- Área do administrador ----------
 let adminToken = localStorage.getItem('cj_admin_token') || '';
@@ -1231,13 +1508,20 @@ function renderAdminList(){
 
   function cardHtml(c){
     const statusClass = String(c.status || '').toLowerCase();
+    const ehPrestador = c.tipo === 'Prestador';
     const docs = [
       c.fotoUrl && ['Foto', c.fotoUrl],
       c.comprovanteResidenciaUrl && ['Comprov. residência', c.comprovanteResidenciaUrl],
       c.comprovantePrefeituraUrl && ['Comprov. prefeitura', c.comprovantePrefeituraUrl],
       c.fotoAnimalUrl && ['Foto animal', c.fotoAnimalUrl],
-      c.comprovanteVacinacaoUrl && ['Comprov. vacinação', c.comprovanteVacinacaoUrl]
+      c.comprovanteVacinacaoUrl && ['Comprov. vacinação', c.comprovanteVacinacaoUrl],
+      c.fotoVeiculoUrl && ['Foto do veículo', c.fotoVeiculoUrl],
+      c.cnhUrl && ['CNH', c.cnhUrl]
     ].filter(Boolean);
+    const temLocal = c.lat !== null && c.lat !== undefined && c.lat !== '';
+    const localHtml = ehPrestador
+      ? `<br>Localização: ${temLocal ? '✓ marcada no mapa' : '⚠ ainda não marcou no mapa'}`
+      : (temLocal ? '<br>Localização: ✓ marcada no mapa' : '');
     let acoesHtml;
     if(c.status === 'Pendente'){
       acoesHtml = `
@@ -1261,13 +1545,13 @@ function renderAdminList(){
     return `<div class="admin-card">
       <div class="admin-card-top">
         <div>
-          <div class="admin-card-name">${c.nome || c.nomeCompleto || '(sem nome)'}</div>
+          <div class="admin-card-name">${c.nome || c.nomeCompleto || '(sem nome)'} ${ehPrestador ? '<span style="font-size:10.5px;font-weight:700;color:var(--mustard);">· ' + (c.modalidade || 'prestador') + '</span>' : ''}</div>
           <div class="admin-card-meta">
             ${c.nomeCompleto || ''}${c.cpf ? ' · CPF ' + c.cpf : ''}<br>
             ${c.servico || ''}<br>
-            Bairros: ${c.areas || '—'}<br>
-            Tel: ${c.telefone || '—'} · Cad. prefeitura: ${c.numeroCadastroPrefeitura || '—'}${c.numeroCarrocaLegal ? ' · Carroça Legal: ' + c.numeroCarrocaLegal : ''}<br>
-            Endereço: ${c.endereco || '—'}
+            ${ehPrestador ? '' : 'Bairros: ' + (c.areas || '—') + '<br>'}
+            Tel: ${c.telefone || '—'}${ehPrestador ? '' : ' · Cad. prefeitura: ' + (c.numeroCadastroPrefeitura || '—') + (c.numeroCarrocaLegal ? ' · Carroça Legal: ' + c.numeroCarrocaLegal : '')}<br>
+            Endereço: ${c.endereco || '—'}${localHtml}
           </div>
           <div class="admin-cliques">${c.cliques || 0} clique${c.cliques === 1 ? '' : 's'} em WhatsApp/Ligar</div>
         </div>
@@ -1314,7 +1598,15 @@ async function iniciar(){
   document.getElementById('bairroList').innerHTML = '<div class="loading-msg">Carregando carroceiros…</div>';
   await carregarCarroceiros();
   renderBairros();
-  showScreen('home');
+
+  const params = new URLSearchParams(location.search);
+  const editId = params.get('editarLocal');
+  const editChave = params.get('chave');
+  if(editId && editChave){
+    abrirEditarLocal(editId, editChave);
+  } else {
+    showScreen('home');
+  }
   flushFila();
 }
 iniciar();
