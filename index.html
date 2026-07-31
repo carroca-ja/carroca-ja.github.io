@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Carroça Já</title>
+<title>Pega Frete</title>
 <meta name="theme-color" content="#BC4316">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -298,9 +298,9 @@
 <div id="app">
   <header>
     <div class="brand" id="brandBlock">
-      <div class="brand-mark"><img src="logo.png" alt="Carroça Já"></div>
+      <div class="brand-mark"><img src="logo.png" alt="Pega Frete"></div>
       <div>
-        <h1>Carroça Já</h1>
+        <h1>Pega Frete</h1>
         <span>Vitória da Conquista</span>
         <div class="sync-row"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">sincronizando…</span></div>
       </div>
@@ -314,8 +314,8 @@
   <!-- TELA 0: início -->
   <div id="screenHome">
     <div class="home-hero">
-      <img src="logo.png" alt="Carroça Já">
-      <h1>Carroça Já</h1>
+      <img src="logo.png" alt="Pega Frete">
+      <h1>Pega Frete</h1>
     </div>
     <div class="menu-list">
       <div class="menu-card" onclick="goToBairros(null)">
@@ -490,10 +490,10 @@
   <!-- TELA: Quem somos? -->
   <div id="screenSobre">
     <div class="screen-title">Quem somos?</div>
-    <p>O <b>Carroça Já</b> é um projeto independente criado para facilitar a vida de quem precisa de um carroceiro em Vitória da Conquista — seja pra uma mudança pequena, retirada de entulho, transporte de areia e materiais de construção, ou poda de árvore.</p>
-    <p>A ideia é simples: conectar direto quem precisa do serviço com quem trabalha na área, por bairro, sem intermediário. O contato é sempre direto por WhatsApp ou telefone, e cada carroceiro recebe avaliações de quem já usou o serviço, pra ajudar outras pessoas a escolher com mais confiança.</p>
-    <p>Todo carroceiro passa por uma conferência de cadastro antes de aparecer no app — nome, endereço, documentos e foto do animal — pra garantir que quem está do outro lado é real.</p>
-    <p>O Carroça Já é um projeto separado do <b>Carroça Legal</b> (programa institucional de regularização de carroceiros), mas compartilha o mesmo objetivo de fundo: valorizar o trabalho do carroceiro e tornar esse serviço mais visível e confiável pra cidade.</p>
+    <p>O <b>Pega Frete</b> é um projeto independente criado para facilitar a vida de quem precisa de um frete em Vitória da Conquista — seja pra uma mudança pequena, retirada de entulho, transporte de areia e materiais de construção, terraplanagem, poda de árvore, ou qualquer outro serviço pesado.</p>
+    <p>A ideia é simples: conectar direto quem precisa do serviço com quem trabalha na área, por bairro, sem intermediário. O contato é sempre direto por WhatsApp ou telefone, e cada prestador recebe avaliações de quem já usou o serviço, pra ajudar outras pessoas a escolher com mais confiança.</p>
+    <p>Todo prestador passa por uma conferência de cadastro antes de aparecer no app — nome, endereço, documentos e, quando for carroceiro, foto do animal — pra garantir que quem está do outro lado é real.</p>
+    <p>O Pega Frete é um projeto separado do <b>Carroça Legal</b> (programa institucional de regularização de carroceiros), mas compartilha o mesmo objetivo de fundo: valorizar o trabalho de quem presta esses serviços e tornar isso mais visível e confiável pra cidade.</p>
     <a class="link-admin" href="javascript:void(0)" onclick="abrirAreaAdmin()">Área do administrador</a>
   </div>
 
@@ -833,7 +833,7 @@ function openPerfil(id){
 function renderPerfil(){
   const c = currentCarroceiro;
   const r = avg(c);
-  const waLink = `https://wa.me/${c.telefone}?text=${encodeURIComponent('Olá ' + c.nome + '! Encontrei seus serviços por meio do app Carroça Já e preciso de um serviço. Depois que o serviço for concluído, vou voltar no app pra avaliar seu atendimento.')}`;
+  const waLink = `https://wa.me/${c.telefone}?text=${encodeURIComponent('Olá ' + c.nome + '! Encontrei seus serviços por meio do app Pega Frete e preciso de um serviço. Depois que o serviço for concluído, vou voltar no app pra avaliar seu atendimento.')}`;
   document.getElementById('screenPerfil').innerHTML = `
     <div class="perfil-hero">
       <div class="perfil-top">

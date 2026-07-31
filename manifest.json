@@ -1,7 +1,7 @@
 {
-  "name": "Carroça Já",
-  "short_name": "Carroça Já",
-  "description": "Encontre carroceiros de confiança perto de você — Vitória da Conquista",
+  "name": "Pega Frete",
+  "short_name": "Pega Frete",
+  "description": "Encontre prestadores de frete e serviços de confiança perto de você — Vitória da Conquista",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
