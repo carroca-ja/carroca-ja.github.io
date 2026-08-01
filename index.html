@@ -1804,6 +1804,11 @@ async function iniciar(){
   } else {
     abrirMapa();
   }
+  // Limpa os parâmetros de link direto da URL depois de usados — sem isso, um F5/atualizar
+  // simplesmente reabre o mesmo link (ex: sempre cai no mesmo prestador em vez do mapa).
+  if(editId || avaliarId){
+    history.replaceState(null, '', location.pathname);
+  }
   flushFila();
 }
 iniciar();
