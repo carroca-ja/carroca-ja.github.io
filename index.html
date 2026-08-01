@@ -1598,18 +1598,19 @@ function renderLeadsAdmin(){
     return `<div class="lead-row">
       <div class="lead-info"><b>${l.nomeCliente || '(sem nome)'}</b> · ${l.telefoneCliente}<br>contatou ${l.carroceiroNome} · ${data}</div>
       <div class="lead-actions">
-        <button class="btn-lembrar" onclick="lembrarLead('${l.telefoneCliente}','${(l.nomeCliente||'').replace(/'/g,"\\'")}','${(l.carroceiroNome||'').replace(/'/g,"\\'")}')">Lembrar</button>
+        <button class="btn-lembrar" onclick="lembrarLead('${l.telefoneCliente}','${(l.nomeCliente||'').replace(/'/g,"\\'")}','${(l.carroceiroNome||'').replace(/'/g,"\\'")}','${l.carroceiroId}')">Lembrar</button>
         <button class="btn-lembrado" onclick="marcarLembrado('${l.id}')">Já lembrei</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function lembrarLead(telefone, nomeCliente, nomePrestador){
+function lembrarLead(telefone, nomeCliente, nomePrestador, carroceiroId){
   let numero = String(telefone || '').replace(/\D/g, '');
   if(numero.length <= 11) numero = '55' + numero;
   const saudacao = nomeCliente ? ('Oi, ' + nomeCliente + '! ') : 'Oi! ';
-  const msg = encodeURIComponent(saudacao + 'Passando pra saber se o serviço com ' + nomePrestador + ' foi feito — se sim, não esquece de avaliar no app Pega Frete 🙂');
+  const linkAvaliar = location.origin + location.pathname + '?avaliar=' + carroceiroId;
+  const msg = encodeURIComponent(saudacao + 'Passando pra saber se o serviço com ' + nomePrestador + ' foi feito — se sim, não esquece de avaliar por aqui: ' + linkAvaliar);
   window.open('https://wa.me/' + numero + '?text=' + msg, '_blank');
 }
 
