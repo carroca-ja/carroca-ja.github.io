@@ -311,10 +311,31 @@
   .pin-icon-marker{width:50px;height:70px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));}
   #screenEditarLocal{flex:1;overflow-y:auto;display:none;padding:22px 18px 30px;}
   #screenEditarLocal .map-picker{height:320px;}
+
+  /* ---------- Tela de carregamento (splash) ---------- */
+  #screenLoading{
+    position:fixed;inset:0;z-index:80;background:var(--bg);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;
+  }
+  .loading-logo{width:130px;height:130px;object-fit:contain;border-radius:24px;filter:drop-shadow(0 10px 24px rgba(120,45,10,0.18));}
+  .loading-icons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:320px;}
+  .loading-icons img{width:36px;height:50px;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.2));}
+  .loading-text{font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:0.3px;}
 </style>
 </head>
 <body>
 <div id="app">
+  <div id="screenLoading">
+    <img class="loading-logo" src="logo.png" alt="Pega Frete">
+    <div class="loading-icons">
+      <img src="icons/pin-carroca.png" alt="">
+      <img src="icons/pin-retroescavadeira.png" alt="">
+      <img src="icons/pin-caminhao-frete.png" alt="">
+      <img src="icons/pin-caminhao-areia.png" alt="">
+      <img src="icons/pin-pickup.png" alt="">
+    </div>
+    <div class="loading-text">Carregando…</div>
+  </div>
   <header>
     <div class="brand" id="brandBlock">
       <div class="brand-mark"><img src="logo.png" alt="Pega Frete"></div>
@@ -804,6 +825,8 @@ function avatarHtml(c, cls){
 
 // ---------- Navegação ----------
 function showScreen(name){
+  const loading = document.getElementById('screenLoading');
+  if(loading) loading.style.display = 'none';
   document.getElementById('screenHome').style.display = name==='home' ? 'flex' : 'none';
   document.getElementById('screenBairro').style.display = name==='bairro' ? 'block' : 'none';
   document.getElementById('screenLista').style.display = name==='lista' ? 'flex' : 'none';
