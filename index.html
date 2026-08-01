@@ -839,7 +839,13 @@ document.getElementById('backBtn').addEventListener('click', () => {
 
 // ---------- Tela 0: início ----------
 function matchesServiceFilter(c){
-  return !currentServiceFilter || (c.servico || '').toLowerCase().includes(currentServiceFilter.toLowerCase());
+  if(!currentServiceFilter) return true;
+  // Carroceiro (tração animal) nunca pode aparecer num filtro de equipamento
+  // pesado, mesmo que o cadastro dele (antigo) tenha essa tag marcada por
+  // engano — essas categorias hoje pertencem ao sistema de modalidade/mapa.
+  const tipo = c.tipo || 'Carroceiro';
+  if(tipo === 'Carroceiro' && TIPOS_PRESTADOR.includes(currentServiceFilter) && currentServiceFilter !== 'Carroceiro') return false;
+  return (c.servico || '').toLowerCase().includes(currentServiceFilter.toLowerCase());
 }
 
 function goToBairros(filtro){
@@ -1079,7 +1085,10 @@ function renderAreasCadastro(){
 
 function renderServicosCadastro(){
   const wrap = document.getElementById('fServicos');
-  wrap.innerHTML = SERVICOS.map(s => `<div class="chip" data-s="${s}">${s}</div>`).join('');
+  // Nomes de modalidade (Retroescavadeira etc.) não entram aqui — carroceiro
+  // é tração animal, essas categorias agora são só pelo cadastro de prestador.
+  const opcoes = SERVICOS.filter(s => !TIPOS_PRESTADOR.includes(s));
+  wrap.innerHTML = opcoes.map(s => `<div class="chip" data-s="${s}">${s}</div>`).join('');
   const outroInput = document.getElementById('fServicoOutro');
   wrap.querySelectorAll('.chip').forEach(chip => {
     if(servicosSelecionados.includes(chip.dataset.s)) chip.classList.add('active');
