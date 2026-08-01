@@ -953,7 +953,8 @@ function openPerfil(id){
 function renderPerfil(){
   const c = currentCarroceiro;
   const r = avg(c);
-  const waLink = `https://wa.me/${c.telefone}?text=${encodeURIComponent('Olá ' + c.nome + '! Encontrei seus serviços por meio do app Pega Frete e preciso de um serviço. Depois que o serviço for concluído, vou voltar no app pra avaliar seu atendimento.')}`;
+  const linkAvaliar = location.origin + location.pathname + '?avaliar=' + c.id;
+  const waLink = `https://wa.me/${c.telefone}?text=${encodeURIComponent('Olá ' + c.nome + '! Encontrei seus serviços por meio do app Pega Frete e preciso de um serviço. Se fechar com você, não esqueço de avaliar seu atendimento depois — é só abrir esse link: ' + linkAvaliar)}`;
   document.getElementById('screenPerfil').innerHTML = `
     <div class="perfil-hero">
       <div class="perfil-top">
@@ -1646,8 +1647,16 @@ async function iniciar(){
   const params = new URLSearchParams(location.search);
   const editId = params.get('editarLocal');
   const editChave = params.get('chave');
+  const avaliarId = params.get('avaliar');
   if(editId && editChave){
     abrirEditarLocal(editId, editChave);
+  } else if(avaliarId && carroceiros.some(c => String(c.id) === String(avaliarId))){
+    openPerfil(avaliarId);
+    perfilOrigemTela = 'mapa'; // veio de link externo (WhatsApp) — Voltar cai no mapa, tela padrão do app
+    setTimeout(() => {
+      const el = document.getElementById('starPicker');
+      if(el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+    }, 150);
   } else {
     abrirMapa();
   }
