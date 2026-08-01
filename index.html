@@ -608,6 +608,10 @@
     </div>
     <div id="mapaGrande"></div>
     <div class="map-legend" id="mapaLegenda"></div>
+    <div style="display:flex;justify-content:space-around;background:var(--card);border-top:1px solid var(--line);flex-shrink:0;">
+      <a class="link-cadastro" href="javascript:void(0)" onclick="goToBairros(null)">Buscar por bairro</a>
+      <a class="link-cadastro" href="javascript:void(0)" onclick="openCadastro()">Quero me cadastrar</a>
+    </div>
   </div>
 
   <!-- TELA: editar localização (link pessoal, sem login) -->
@@ -674,7 +678,7 @@ let currentCarroceiro = null;
 let pendingStars = 0;
 let currentServiceFilter = null;
 let currentScreen = 'home';
-let cadastroVeioDaHome = false;
+let cadastroOrigemTela = 'home';
 
 // ---------- Persistência local (cache offline) ----------
 function salvarLocal(){ localStorage.setItem('cj_carroceiros', JSON.stringify(carroceiros)); }
@@ -821,7 +825,7 @@ document.getElementById('backBtn').addEventListener('click', () => {
   } else if(currentScreen === 'lista'){
     showScreen('bairro');
   } else if(currentScreen === 'cadastro'){
-    showScreen(cadastroVeioDaHome ? 'home' : 'bairro');
+    showScreen(cadastroOrigemTela);
   } else if(currentScreen === 'adminLogin' || currentScreen === 'adminPainel'){
     showScreen('sobre');
   } else if(currentScreen === 'mapa' || currentScreen === 'editarLocal'){
@@ -1159,7 +1163,7 @@ function cpfValido(cpf){
 }
 
 function openCadastro(){
-  cadastroVeioDaHome = currentScreen === 'home';
+  cadastroOrigemTela = ['home','bairro','mapa'].includes(currentScreen) ? currentScreen : 'home';
   document.getElementById('formCadastro').reset();
   document.getElementById('formCadastro').style.display = '';
   document.getElementById('cadastroSucesso').style.display = 'none';
@@ -1605,7 +1609,7 @@ async function iniciar(){
   if(editId && editChave){
     abrirEditarLocal(editId, editChave);
   } else {
-    showScreen('home');
+    abrirMapa();
   }
   flushFila();
 }
