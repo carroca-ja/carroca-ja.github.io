@@ -133,6 +133,7 @@
   .perfil-name{font-weight:800;font-size:19px;margin:0;letter-spacing:-0.2px;}
   .perfil-service{font-size:12px;color:var(--leaf);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;margin-top:4px;}
   .perfil-stars{margin-top:9px;font-size:14px;display:flex;align-items:center;gap:6px;}
+  .perfil-desde{margin-top:5px;font-size:11.5px;color:var(--muted);}
   .perfil-stars .stars-row{display:inline-flex;gap:1px;color:var(--mustard);}
   .perfil-stars b{color:var(--ink);font-size:14px;font-weight:700;}
   .perfil-stars small{color:var(--muted);font-weight:500;}
@@ -165,6 +166,8 @@
   .review-top b{color:var(--ink);font-size:13.5px;}
   .review-stars{display:inline-flex;gap:1px;color:var(--mustard);font-size:12px;}
   .review-pending{font-size:10.5px;color:var(--brick);font-weight:700;margin-left:6px;}
+  .review-data{font-size:10.5px;color:var(--muted);margin-left:6px;}
+  .review-vazio{font-size:13px;color:var(--muted);padding:6px 0;}
 
   .rate-box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:18px;margin-top:4px;box-shadow:var(--shadow-sm);}
   .rate-box h4{margin:0 0 12px;font-size:13.5px;font-weight:700;}
@@ -887,6 +890,19 @@ window.addEventListener('online', flushFila);
 
 // ---------- Utilitários ----------
 function avg(c){ if(!c.reviews.length) return 0; return c.reviews.reduce((s,r)=>s+r.nota,0) / c.reviews.length; }
+const MESES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function mesAno(dataStr){
+  if(!dataStr) return '';
+  const d = new Date(dataStr);
+  if(isNaN(d)) return '';
+  return MESES_ABREV[d.getMonth()] + '/' + d.getFullYear();
+}
+function dataCurta(dataStr){
+  if(!dataStr) return '';
+  const d = new Date(dataStr);
+  if(isNaN(d)) return '';
+  return d.toLocaleDateString('pt-BR');
+}
 const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.6L12 17.4l-5.8 3.2 1.1-6.6L2.5 9.4l6.6-.9z';
 function starIcon(filled){
   return `<svg class="icon" viewBox="0 0 24 24" style="fill:${filled ? 'var(--mustard)' : 'var(--line)'}"><path d="${STAR_PATH}"/></svg>`;
@@ -1041,6 +1057,7 @@ function renderPerfil(){
           <p class="perfil-name">${c.nome}</p>
           <div class="perfil-service">${c.servico}</div>
           <div class="perfil-stars">${starsStr(r)} <b>${r.toFixed(1)}</b> <small>(${c.reviews.length} avaliações)</small></div>
+          ${c.dataCadastro ? `<div class="perfil-desde">No Pega Frete desde ${mesAno(c.dataCadastro)}</div>` : ''}
         </div>
       </div>
       <div class="status-row ${c.online?'':'off'}"><span class="dot"></span> ${c.online?'Disponível agora':'Offline no momento'}</div>
@@ -1064,11 +1081,11 @@ function renderPerfil(){
 
     <div class="section">
       <div class="section-title">Avaliações</div>
-      ${c.reviews.map(rv => `
+      ${c.reviews.length ? c.reviews.map(rv => `
         <div class="review">
-          <div class="review-top"><b>${rv.autor}</b><span class="review-stars">${starsStr(rv.nota)}</span>${rv.pendente ? '<span class="review-pending">enviando…</span>' : ''}</div>
+          <div class="review-top"><b>${rv.autor}</b><span class="review-stars">${starsStr(rv.nota)}</span>${rv.pendente ? '<span class="review-pending">enviando…</span>' : (rv.data ? `<span class="review-data">${dataCurta(rv.data)}</span>` : '')}</div>
           ${rv.texto}
-        </div>`).join('')}
+        </div>`).join('') : '<div class="review-vazio">Ainda sem avaliações — seja o primeiro a contar como foi o serviço.</div>'}
     </div>
 
     <div class="section" style="padding-top:0;">
