@@ -1,7 +1,7 @@
 // Service Worker — Carroça Já
 // Incremente CACHE_NAME sempre que publicar uma nova versão, para forçar os
 // celulares já instalados a buscarem os arquivos atualizados.
-const CACHE_NAME = 'carroca-ja-v10';
+const CACHE_NAME = 'carroca-ja-v11';
 const ASSETS = [
   './',
   './index.html',
