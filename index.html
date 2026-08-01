@@ -483,7 +483,7 @@
             </div>
           </div>
           <div class="field map-field">
-            <label id="lblLocalizacao">Onde você trabalha (opcional)</label>
+            <label id="lblLocalizacao">Onde você trabalha</label>
             <p class="map-hint" id="hintLocalizacao">Clique no mapa pra marcar o ponto onde você costuma trabalhar. Dá pra atualizar isso depois, todo dia se quiser.</p>
             <div class="map-picker" id="mapaCadastro"></div>
             <div class="map-picker-status pendente" id="localizacaoStatus">Nenhum ponto marcado ainda</div>
@@ -701,7 +701,7 @@ const CONFIG = {
   TOKEN: ''
 };
 
-let bairros = ["Nova Cidade", "Candeias", "Recreio", "Jurema", "Guarani", "Centro", "Ibirapuera", "Patagônia"];
+let bairros = ["Alegria", "Alto Maron", "Área Rural de Vitória da Conquista", "Ayrton Senna", "Bandeira", "Bateias", "BNH", "Boa Vista", "Brasil", "Campinhos", "Candeias", "Centro", "Conquista", "Cruzeiro", "Distrito Industrial", "Espírito Santo", "Feirinha", "Felícia", "Flamengo", "Guarani", "Ibirapuera", "Inocoop", "Iracema", "Jatobá", "Jurema", "Lagoa das Flores", "Nossa Senhora Aparecida", "Nova Cidade", "Parque Dona Arminda Cândida de Jesus", "Patagônia", "Primavera", "Recreio", "São Pedro", "São Vicente", "Sumaré", "Universidade", "Urbis", "Vila Serrana", "Zabelê"];
 
 // Dados de exemplo — usados só até a planilha estar configurada, ou como fallback offline.
 const SEED_CARROCEIROS = [
@@ -1151,10 +1151,10 @@ function atualizarVisibilidadeCadastro(){
   document.getElementById('blocoCarroceiroFotos').style.display = ehPrestador ? 'none' : '';
   document.getElementById('blocoPrestadorFotos').style.display = ehPrestador ? '' : 'none';
   document.getElementById('blocoTermoAnimais').style.display = ehPrestador ? 'none' : '';
-  document.getElementById('lblLocalizacao').textContent = ehPrestador ? 'Onde você trabalha' : 'Onde você trabalha (opcional)';
+  document.getElementById('lblLocalizacao').textContent = 'Onde você trabalha';
   document.getElementById('hintLocalizacao').textContent = ehPrestador
     ? 'Clique no mapa pra marcar o ponto onde você trabalha — é assim que você aparece pra quem estiver procurando ' + selectedTipo.toLowerCase() + '. Dá pra atualizar todo dia se quiser.'
-    : 'Opcional: clique no mapa pra marcar um ponto de referência. Você continua aparecendo pela busca por bairro normalmente.';
+    : 'Clique no mapa pra marcar um ponto de referência — é assim que você aparece no mapa público, além da busca por bairro. Dá pra atualizar quando quiser.';
   setTimeout(() => { if(mapaCadastroInstance) mapaCadastroInstance.invalidateSize(); }, 60);
 }
 
@@ -1344,7 +1344,7 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
     errGeral.textContent = 'Envie a foto do veículo/equipamento e a foto da CNH.';
     return;
   }
-  if(ehPrestador && (cadastroLat === null || cadastroLng === null)){
+  if(cadastroLat === null || cadastroLng === null){
     errGeral.textContent = 'Clique no mapa pra marcar onde você trabalha.';
     return;
   }
