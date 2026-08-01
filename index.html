@@ -671,14 +671,15 @@
     <button type="button" class="btn-send" id="btnSalvarLocal" onclick="salvarEdicaoLocal()">Salvar localização</button>
   </div>
 
-  <!-- Modal: pede telefone do cliente antes de abrir o WhatsApp (opcional, pode pular) -->
+  <!-- Modal: pede nome e telefone do cliente antes de abrir o WhatsApp -->
   <div class="modal-backdrop" id="modalTelefoneCliente">
     <div class="modal-card">
       <h4>Antes de ir pro WhatsApp…</h4>
-      <p>Deixa seu telefone pra gente poder te lembrar de avaliar o atendimento depois que o serviço acabar (opcional).</p>
+      <p>Deixa seu nome e telefone pra gente poder te lembrar de avaliar o atendimento depois que o serviço acabar.</p>
+      <input type="text" id="fNomeClienteModal" placeholder="Seu nome">
       <input type="tel" id="fTelefoneClienteModal" placeholder="(77) 9XXXX-XXXX">
+      <div class="field-error" id="errTelefoneClienteModal" style="margin:-8px 0 12px;"></div>
       <div class="modal-actions">
-        <button type="button" class="modal-skip" onclick="pularTelefoneCliente()">Pular</button>
         <button type="button" class="btn-send" style="flex:1;" onclick="confirmarTelefoneCliente()">Continuar</button>
       </div>
     </div>
@@ -810,11 +811,14 @@ function registrarClique(carroceiroId){
   jsonp(CONFIG.SHEETS_URL, { action:'clique', carroceiroId }).catch(() => {});
 }
 
-// ---------- Captura de telefone do cliente antes do WhatsApp ----------
+// ---------- Captura de nome/telefone do cliente antes do WhatsApp (obrigatório) ----------
 function abrirWhatsapp(carroceiroId){
   window._whatsappAlvoId = carroceiroId;
-  const input = document.getElementById('fTelefoneClienteModal');
-  if(input) input.value = '';
+  const nomeInput = document.getElementById('fNomeClienteModal');
+  const telInput = document.getElementById('fTelefoneClienteModal');
+  if(nomeInput) nomeInput.value = '';
+  if(telInput) telInput.value = '';
+  document.getElementById('errTelefoneClienteModal').textContent = '';
   document.getElementById('modalTelefoneCliente').style.display = 'flex';
 }
 
@@ -822,17 +826,17 @@ function fecharModalTelefoneCliente(){
   document.getElementById('modalTelefoneCliente').style.display = 'none';
 }
 
-function pularTelefoneCliente(){
-  const id = window._whatsappAlvoId;
-  fecharModalTelefoneCliente();
-  seguirParaWhatsapp(id);
-}
-
 function confirmarTelefoneCliente(){
   const id = window._whatsappAlvoId;
+  const nome = document.getElementById('fNomeClienteModal').value.trim();
   const tel = document.getElementById('fTelefoneClienteModal').value.trim();
-  if(tel && CONFIG.SHEETS_URL){
-    jsonp(CONFIG.SHEETS_URL, { action:'registrarLead', carroceiroId: id, telefoneCliente: tel }).catch(() => {});
+  const err = document.getElementById('errTelefoneClienteModal');
+  const telDigits = tel.replace(/\D/g, '');
+  if(!nome){ err.textContent = 'Digite seu nome.'; return; }
+  if(telDigits.length < 10){ err.textContent = 'Digite um telefone válido, com DDD.'; return; }
+  err.textContent = '';
+  if(CONFIG.SHEETS_URL){
+    jsonp(CONFIG.SHEETS_URL, { action:'registrarLead', carroceiroId: id, nomeCliente: nome, telefoneCliente: tel }).catch(() => {});
   }
   fecharModalTelefoneCliente();
   seguirParaWhatsapp(id);
@@ -1592,19 +1596,20 @@ function renderLeadsAdmin(){
   wrap.innerHTML = adminLeads.map(l => {
     const data = l.dataContato ? new Date(l.dataContato).toLocaleDateString('pt-BR') : '';
     return `<div class="lead-row">
-      <div class="lead-info"><b>${l.telefoneCliente}</b><br>contatou ${l.carroceiroNome} · ${data}</div>
+      <div class="lead-info"><b>${l.nomeCliente || '(sem nome)'}</b> · ${l.telefoneCliente}<br>contatou ${l.carroceiroNome} · ${data}</div>
       <div class="lead-actions">
-        <button class="btn-lembrar" onclick="lembrarLead('${l.telefoneCliente}','${(l.carroceiroNome||'').replace(/'/g,"\\'")}')">Lembrar</button>
+        <button class="btn-lembrar" onclick="lembrarLead('${l.telefoneCliente}','${(l.nomeCliente||'').replace(/'/g,"\\'")}','${(l.carroceiroNome||'').replace(/'/g,"\\'")}')">Lembrar</button>
         <button class="btn-lembrado" onclick="marcarLembrado('${l.id}')">Já lembrei</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function lembrarLead(telefone, nomePrestador){
+function lembrarLead(telefone, nomeCliente, nomePrestador){
   let numero = String(telefone || '').replace(/\D/g, '');
   if(numero.length <= 11) numero = '55' + numero;
-  const msg = encodeURIComponent('Oi! Passando pra saber se o serviço com ' + nomePrestador + ' foi feito — se sim, não esquece de avaliar no app Pega Frete 🙂');
+  const saudacao = nomeCliente ? ('Oi, ' + nomeCliente + '! ') : 'Oi! ';
+  const msg = encodeURIComponent(saudacao + 'Passando pra saber se o serviço com ' + nomePrestador + ' foi feito — se sim, não esquece de avaliar no app Pega Frete 🙂');
   window.open('https://wa.me/' + numero + '?text=' + msg, '_blank');
 }
 
