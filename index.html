@@ -1815,6 +1815,7 @@ async function iniciar(){
   const editId = params.get('editarLocal');
   const editChave = params.get('chave');
   const avaliarId = params.get('avaliar');
+  const cadastroDireto = params.get('cadastro');
   if(editId && editChave){
     abrirEditarLocal(editId, editChave);
   } else if(avaliarId && carroceiros.some(c => String(c.id) === String(avaliarId))){
@@ -1824,12 +1825,14 @@ async function iniciar(){
       const el = document.getElementById('starPicker');
       if(el) el.scrollIntoView({ behavior:'smooth', block:'center' });
     }, 150);
+  } else if(cadastroDireto){
+    openCadastro(); // veio de QR code/link externo — Voltar cai no menu inicial (currentScreen ainda é 'home' no boot)
   } else {
     abrirMapa();
   }
   // Limpa os parâmetros de link direto da URL depois de usados — sem isso, um F5/atualizar
   // simplesmente reabre o mesmo link (ex: sempre cai no mesmo prestador em vez do mapa).
-  if(editId || avaliarId){
+  if(editId || avaliarId || cadastroDireto){
     history.replaceState(null, '', location.pathname);
   }
   flushFila();
