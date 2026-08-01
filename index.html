@@ -308,7 +308,7 @@
   .map-legend{display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px;background:var(--card);border-top:1px solid var(--line);flex-shrink:0;}
   .map-legend span{font-size:10.5px;font-weight:700;color:var(--muted);background:var(--bg);border-radius:999px;padding:5px 10px;display:flex;align-items:center;gap:5px;}
   .map-legend img{width:14px;height:14px;object-fit:contain;}
-  .pin-icon-marker{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));}
+  .pin-icon-marker{width:50px;height:70px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));}
   #screenEditarLocal{flex:1;overflow-y:auto;display:none;padding:22px 18px 30px;}
   #screenEditarLocal .map-picker{height:320px;}
 </style>
@@ -1316,7 +1316,7 @@ let mapaGrandeInstance = null;
 
 function pinIcon(modalidade){
   const src = MODALIDADE_ICONE[modalidade] || MODALIDADE_ICONE['Carroceiro'];
-  return L.icon({ iconUrl: src, iconSize:[54,54], iconAnchor:[27,51], popupAnchor:[0,-46], className:'pin-icon-marker' });
+  return L.icon({ iconUrl: src, iconSize:[50,70], iconAnchor:[25,66], popupAnchor:[0,-60], className:'pin-icon-marker' });
 }
 
 function abrirMapa(){
