@@ -308,7 +308,7 @@
   .map-legend{display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px;background:var(--card);border-top:1px solid var(--line);flex-shrink:0;}
   .map-legend span{font-size:10.5px;font-weight:700;color:var(--muted);background:var(--bg);border-radius:999px;padding:5px 10px;display:flex;align-items:center;gap:5px;}
   .map-legend img{width:14px;height:14px;object-fit:contain;}
-  .pin-icon-marker{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));}
+  .pin-icon-marker{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));}
   #screenEditarLocal{flex:1;overflow-y:auto;display:none;padding:22px 18px 30px;}
   #screenEditarLocal .map-picker{height:320px;}
 </style>
@@ -529,7 +529,7 @@
 
         <div class="form-section">
           <div class="form-section-title">Termos</div>
-          <label class="term-row"><input type="checkbox" id="tAnimais"><span>Me comprometo a cuidar bem do meu animal de tração — alimentação, água, descanso e atenção veterinária quando precisar.</span></label>
+          <label class="term-row" id="blocoTermoAnimais"><input type="checkbox" id="tAnimais"><span>Me comprometo a cuidar bem do meu animal de tração — alimentação, água, descanso e atenção veterinária quando precisar.</span></label>
           <label class="term-row"><input type="checkbox" id="tDescarte"><span>Me comprometo a descartar entulho e resíduos só em local apropriado, nunca em terrenos baldios, córregos ou áreas de preservação.</span></label>
           <label class="term-row"><input type="checkbox" id="tVeracidade"><span>Declaro que os dados e documentos enviados são verdadeiros e sei que meu cadastro pode ser removido se isso não for verdade.</span></label>
           <label class="term-row"><input type="checkbox" id="tLgpd"><span>Autorizo o uso dos meus dados e documentos só para conferência do cadastro, sem divulgação pública do CPF, endereço ou comprovantes.</span></label>
@@ -820,8 +820,12 @@ function showScreen(name){
 }
 document.getElementById('backBtn').addEventListener('click', () => {
   if(currentScreen === 'perfil'){
-    renderLista(currentBairro);
-    showScreen('lista');
+    if(perfilOrigemTela === 'mapa'){
+      showScreen('mapa');
+    } else {
+      renderLista(currentBairro);
+      showScreen('lista');
+    }
   } else if(currentScreen === 'lista'){
     showScreen('bairro');
   } else if(currentScreen === 'cadastro'){
@@ -914,7 +918,9 @@ function renderLista(b){
 }
 
 // ---------- Tela 3 ----------
+let perfilOrigemTela = 'lista';
 function openPerfil(id){
+  perfilOrigemTela = currentScreen === 'mapa' ? 'mapa' : 'lista';
   currentCarroceiro = carroceiros.find(c => String(c.id) === String(id));
   pendingStars = 0;
   renderPerfil();
@@ -1042,6 +1048,7 @@ function atualizarVisibilidadeCadastro(){
   document.getElementById('blocoCarroceiroDados').style.display = ehPrestador ? 'none' : '';
   document.getElementById('blocoCarroceiroFotos').style.display = ehPrestador ? 'none' : '';
   document.getElementById('blocoPrestadorFotos').style.display = ehPrestador ? '' : 'none';
+  document.getElementById('blocoTermoAnimais').style.display = ehPrestador ? 'none' : '';
   document.getElementById('lblLocalizacao').textContent = ehPrestador ? 'Onde você trabalha' : 'Onde você trabalha (opcional)';
   document.getElementById('hintLocalizacao').textContent = ehPrestador
     ? 'Clique no mapa pra marcar o ponto onde você trabalha — é assim que você aparece pra quem estiver procurando ' + selectedTipo.toLowerCase() + '. Dá pra atualizar todo dia se quiser.'
@@ -1239,7 +1246,8 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
     errGeral.textContent = 'Clique no mapa pra marcar onde você trabalha.';
     return;
   }
-  const termosOk = ['tAnimais','tDescarte','tVeracidade','tLgpd'].every(id => document.getElementById(id).checked);
+  const termosObrigatorios = ehPrestador ? ['tDescarte','tVeracidade','tLgpd'] : ['tAnimais','tDescarte','tVeracidade','tLgpd'];
+  const termosOk = termosObrigatorios.every(id => document.getElementById(id).checked);
   if(!termosOk){
     errGeral.textContent = 'É preciso aceitar todos os termos pra continuar.';
     return;
@@ -1308,7 +1316,7 @@ let mapaGrandeInstance = null;
 
 function pinIcon(modalidade){
   const src = MODALIDADE_ICONE[modalidade] || MODALIDADE_ICONE['Carroceiro'];
-  return L.icon({ iconUrl: src, iconSize:[38,38], iconAnchor:[19,36], popupAnchor:[0,-32], className:'pin-icon-marker' });
+  return L.icon({ iconUrl: src, iconSize:[54,54], iconAnchor:[27,51], popupAnchor:[0,-46], className:'pin-icon-marker' });
 }
 
 function abrirMapa(){
